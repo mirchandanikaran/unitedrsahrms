@@ -1,0 +1,17 @@
+[Unit]
+Description=HRMS Backend API
+After=network.target postgresql.service
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/hrms/backend
+Environment="PATH=/opt/hrms/venv/bin"
+EnvironmentFile=/opt/hrms/backend/.env
+ExecStart=/opt/hrms/venv/bin/gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 127.0.0.1:8000
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
