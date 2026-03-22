@@ -1,4 +1,4 @@
-"""HRMS FastAPI application."""
+"""Employee Management System — FastAPI application."""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -14,8 +14,8 @@ def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="HRMS API",
-    description="Human Resource Management System - Consulting/IT Services",
+    title="Employee Management System API",
+    description="Employee Management System — attendance, leave, onboarding, and reporting",
     version="1.0.0",
     lifespan=lifespan,
     docs_url="/docs",
@@ -36,7 +36,7 @@ app.include_router(api_router)
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "app": "HRMS"}
+    return {"status": "ok", "app": "Employee Management System"}
 
 
 if __name__ == "__main__":

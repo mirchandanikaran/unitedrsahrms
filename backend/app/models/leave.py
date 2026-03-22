@@ -14,6 +14,7 @@ class LeaveType(Base):
     code = Column(String(20), unique=True)
     max_days_per_year = Column(Float, default=0)  # 0 = unlimited
     is_paid = Column(Integer, default=1)  # 1=paid, 0=unpaid
+    probation_months = Column(Integer, default=0)  # months of service required before this type is available; 0=no restriction
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
@@ -47,6 +48,7 @@ class Holiday(Base):
     date = Column(Date, nullable=False, index=True)
     year = Column(Integer, nullable=False, index=True)
     is_optional = Column(Integer, default=0)  # 0=mandatory, 1=optional
+    region = Column(String(50), nullable=True, index=True)  # e.g. "IN-MH", "IN-KA", "US-CA", None=global
     created_at = Column(DateTime, default=datetime.utcnow)
 
 

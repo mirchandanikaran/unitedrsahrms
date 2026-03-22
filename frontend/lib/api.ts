@@ -51,6 +51,7 @@ export const api = {
       request<{ message: string; employee_id: number }>(`/employees/${id}`, { method: "DELETE" }),
     departments: () => request<Department[]>("/employees/departments"),
     designations: () => request<Designation[]>("/employees/designations"),
+    reportingStructure: () => request<ReportingStructure>("/employees/reporting-structure"),
   },
   attendance: {
     list: (params?: Record<string, string>) =>
@@ -66,8 +67,24 @@ export const api = {
     approve: (id: number, data: { status: string; rejection_reason?: string }) =>
       request<Leave>(`/leaves/${id}/approve`, { method: "PUT", body: JSON.stringify(data) }),
     types: () => request<LeaveType[]>("/leaves/types"),
-    holidays: (year?: number) =>
-      request<Holiday[]>("/leaves/holidays", { params: year ? { year: String(year) } : {} }),
+    holidays: (params?: Record<string, string>) =>
+      request<Holiday[]>("/leaves/holidays", { params: params || {} }),
+    calendar: (year: number, month: number, region = "IN") =>
+      request<LeaveCalendarMonth>("/leaves/calendar", {
+        params: { year: String(year), month: String(month), region },
+      }),
+    createHoliday: (data: {
+      name: string;
+      date: string;
+      year: number;
+      is_optional?: number;
+      region?: string | null;
+    }) => request<Holiday>("/leaves/holidays", { method: "POST", body: JSON.stringify(data) }),
+    updateHoliday: (
+      id: number,
+      data: Partial<{ name: string; date: string; year: number; is_optional: number; region: string | null }>
+    ) => request<Holiday>(`/leaves/holidays/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    deleteHoliday: (id: number) => request<{ message: string }>(`/leaves/holidays/${id}`, { method: "DELETE" }),
     updateBalance: (data: { employee_id: number; leave_type_id: number; total_days: number; year?: number }) =>
       request<{ message: string }>("/leaves/balance", { method: "PUT", body: JSON.stringify(data) }),
   },
@@ -102,6 +119,31 @@ export const api = {
     markRead: (id: number) =>
       request(`/notifications/${id}/read`, { method: "PUT" }),
   },
+  onboarding: {
+    templates: () => request<OnboardingTemplate[]>("/onboarding/templates"),
+    createTemplate: (data: { title: string; category: string; description?: string; order?: number }) =>
+      request<OnboardingTemplate>("/onboarding/templates", { method: "POST", body: JSON.stringify(data) }),
+    deleteTemplate: (id: number) =>
+      request<{ message: string }>(`/onboarding/templates/${id}`, { method: "DELETE" }),
+    initialize: (employeeId: number) =>
+      request<{ message: string }>(`/onboarding/initialize/${employeeId}`, { method: "POST" }),
+    items: (params?: Record<string, string>) =>
+      request<OnboardingItem[]>("/onboarding/items", { params }),
+    updateItem: (id: number, data: { status?: string; notes?: string }) =>
+      request<OnboardingItem>(`/onboarding/items/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  },
+  profileRequests: {
+    create: (data: { field_name: string; new_value: string }) =>
+      request<ProfileUpdateRequest>("/profile-requests", { method: "POST", body: JSON.stringify(data) }),
+    list: (params?: Record<string, string>) =>
+      request<ProfileUpdateRequest[]>("/profile-requests", { params }),
+    review: (id: number, data: { status: string; rejection_reason?: string }) =>
+      request<ProfileUpdateRequest>(`/profile-requests/${id}/review`, { method: "PUT", body: JSON.stringify(data) }),
+  },
+  analytics: {
+    executive: (params?: Record<string, string>) =>
+      request<ExecutiveAnalytics>("/analytics/executive", { params }),
+  },
 };
 
 // Types
@@ -118,6 +160,10 @@ export interface Employee {
   first_name: string;
   last_name: string;
   email: string;
+  phone?: string;
+  address?: string;
+  emergency_contact?: string;
+  date_of_birth?: string;
   department_id: number;
   designation_id: number;
   department?: Department;
@@ -134,6 +180,24 @@ export interface Designation {
   id: number;
   name: string;
 }
+export interface ReportingNode {
+  id: number;
+  employee_code: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  department?: string;
+  designation?: string;
+  manager_id: number | null;
+  status: string;
+}
+export interface ReportingStructure {
+  scope: "self" | "organization";
+  nodes: ReportingNode[];
+  focus_employee_id?: number | null;
+  reports_to_chain?: ReportingNode[] | null;
+  direct_reports?: ReportingNode[] | null;
+}
 export interface Attendance {
   id: number;
   employee_id: number;
@@ -148,7 +212,13 @@ export interface Leave {
   start_date: string;
   end_date: string;
   days: number;
+  reason?: string;
   status: string;
+  approved_by_id?: number;
+  approved_by_name?: string;
+  approved_at?: string;
+  rejection_reason?: string;
+  created_at?: string;
   employee_name?: string;
   leave_type_name?: string;
 }
@@ -157,6 +227,7 @@ export interface LeaveBalance {
   leave_type_name: string;
   total_days: number;
   used_days: number;
+  pending_days: number;
   balance: number;
 }
 export interface LeaveType {
@@ -169,6 +240,32 @@ export interface Holiday {
   name: string;
   date: string;
   year: number;
+  is_optional?: number;
+  region?: string | null;
+}
+export interface CalendarHolidayItem {
+  id: number;
+  name: string;
+  is_optional: number;
+  region?: string | null;
+}
+export interface CalendarLeaveItem {
+  leave_id: number;
+  employee_id: number;
+  employee_name: string;
+  leave_type_name: string;
+  is_self: boolean;
+}
+export interface CalendarDay {
+  date: string;
+  mandatory_holidays: CalendarHolidayItem[];
+  optional_holidays: CalendarHolidayItem[];
+  approved_leaves: CalendarLeaveItem[];
+}
+export interface LeaveCalendarMonth {
+  year: number;
+  month: number;
+  days: CalendarDay[];
 }
 export interface Project {
   id: number;
@@ -202,8 +299,18 @@ export interface Paginated<T> {
 export interface LeadershipDashboard {
   headcount: { total: number; active: number; inactive: number };
   department_headcount: { name: string; count: number }[];
-  attendance_summary: { present: number; absent: number };
-  utilization: { utilization_percent: number; billable_allocation: number };
+  attendance_summary: {
+    present: number;
+    absent: number;
+    period_start?: string;
+    period_end?: string;
+  };
+  leave_trends?: { total_leave_days: number };
+  utilization: {
+    utilization_percent: number;
+    billable_allocation: number;
+    total_allocation?: number;
+  };
   new_joiners: number;
   exits: number;
 }
@@ -214,4 +321,48 @@ export interface ManagerDashboard {
 }
 export interface EmployeeDashboard {
   attendance: { present_days: number; absent_days: number };
+}
+export interface OnboardingTemplate {
+  id: number;
+  title: string;
+  category: string;
+  description?: string;
+  order: number;
+}
+export interface OnboardingItem {
+  id: number;
+  template_id: number;
+  employee_id: number;
+  status: string;
+  completed_at?: string;
+  completed_by_id?: number;
+  notes?: string;
+  created_at: string;
+  template_title?: string;
+  template_category?: string;
+}
+export interface ProfileUpdateRequest {
+  id: number;
+  employee_id: number;
+  field_name: string;
+  old_value?: string;
+  new_value: string;
+  status: string;
+  reviewed_by_id?: number;
+  reviewed_at?: string;
+  rejection_reason?: string;
+  created_at: string;
+  employee_name?: string;
+}
+export interface ExecutiveAnalytics {
+  headcount: { active: number; inactive: number; total: number };
+  attrition: { rate_percent: number; exits_in_period: number; monthly: { month: string; exits: number; joins: number }[] };
+  department_diversity: { name: string; count: number; percent: number }[];
+  designation_diversity: { name: string; count: number }[];
+  tenure_distribution: { bucket: string; count: number }[];
+  hiring_velocity: { month: string; hires: number }[];
+  utilization: { total_allocation: number; billable_allocation: number; utilization_percent: number };
+  leave_liability: { total_liability_days: number; by_type: { type: string; total_entitled: number; total_used: number; remaining_liability: number }[] };
+  attendance_trends: { date: string; present: number; absent: number }[];
+  pending_leaves: number;
 }

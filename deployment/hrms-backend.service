@@ -1,5 +1,5 @@
 [Unit]
-Description=HRMS Backend API
+Description=Employee Management System backend API
 After=network.target postgresql.service
 
 [Service]

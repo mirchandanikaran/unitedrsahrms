@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     """Application settings loaded from .env file."""
 
     # App
-    APP_NAME: str = "HRMS"
+    APP_NAME: str = "Employee Management System"
     DEBUG: bool = False
 
     # Database

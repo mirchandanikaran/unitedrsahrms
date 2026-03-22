@@ -1,4 +1,5 @@
 """Seed database with sample data."""
+import random
 import sys
 from pathlib import Path
 
@@ -14,7 +15,9 @@ from app.models.leave import LeaveType, Leave, Holiday
 from app.models.project import Project, Allocation
 from app.models.performance import Goal, PerformanceReview
 from app.models.notification import Notification
+from app.models.onboarding import OnboardingTemplate
 from app.core.security import get_password_hash
+from app.seeds.random_employees import SEED_RANDOM_EMPLOYEE_COUNT, add_random_employees
 
 
 def seed():
@@ -99,6 +102,11 @@ def seed():
             emps.append(e)
         db.commit()
 
+        # Random demo employees (50) — same DB as portal; no login accounts
+        extra = add_random_employees(db, count=50, rng=random.Random(42))
+        db.commit()
+        print(f"Seeded {extra} random employees (GEN***** @ demo.generated, no portal login).")
+
         # Leave types
         leave_types = [
             LeaveType(name="Casual", code="CL", max_days_per_year=12, is_paid=1),
@@ -111,15 +119,33 @@ def seed():
         for lt in leave_types:
             db.refresh(lt)
 
-        # Holidays 2025
+        # India holiday calendar (region IN). is_optional: 0 = mandatory / gazetted-style, 1 = optional floater
         holidays = [
-            ("New Year", date(2025, 1, 1), 2025),
-            ("Republic Day", date(2025, 1, 26), 2025),
-            ("Holi", date(2025, 3, 14), 2025),
-            ("Independence Day", date(2025, 8, 15), 2025),
+            # 2025
+            ("New Year", date(2025, 1, 1), 2025, 1, "IN"),
+            ("Republic Day", date(2025, 1, 26), 2025, 0, "IN"),
+            ("Maha Shivaratri", date(2025, 2, 26), 2025, 1, "IN"),
+            ("Holi", date(2025, 3, 14), 2025, 0, "IN"),
+            ("Good Friday", date(2025, 4, 18), 2025, 0, "IN"),
+            ("Eid ul-Fitr", date(2025, 3, 31), 2025, 1, "IN"),
+            ("Independence Day", date(2025, 8, 15), 2025, 0, "IN"),
+            ("Gandhi Jayanti", date(2025, 10, 2), 2025, 0, "IN"),
+            ("Dussehra (Vijayadashami)", date(2025, 10, 12), 2025, 0, "IN"),
+            ("Diwali (Balipratipada)", date(2025, 10, 22), 2025, 0, "IN"),
+            ("Christmas", date(2025, 12, 25), 2025, 0, "IN"),
+            # 2026 (admin can edit yearly in portal)
+            ("New Year", date(2026, 1, 1), 2026, 1, "IN"),
+            ("Republic Day", date(2026, 1, 26), 2026, 0, "IN"),
+            ("Holi", date(2026, 3, 3), 2026, 0, "IN"),
+            ("Good Friday", date(2026, 4, 3), 2026, 0, "IN"),
+            ("Independence Day", date(2026, 8, 15), 2026, 0, "IN"),
+            ("Gandhi Jayanti", date(2026, 10, 2), 2026, 0, "IN"),
+            ("Dussehra", date(2026, 10, 20), 2026, 0, "IN"),
+            ("Diwali", date(2026, 11, 8), 2026, 0, "IN"),
+            ("Christmas", date(2026, 12, 25), 2026, 0, "IN"),
         ]
-        for name, d, yr in holidays:
-            db.add(Holiday(name=name, date=d, year=yr))
+        for name, d, yr, is_opt, reg in holidays:
+            db.add(Holiday(name=name, date=d, year=yr, is_optional=is_opt, region=reg))
         db.commit()
 
         # Sample attendance
@@ -135,7 +161,7 @@ def seed():
                 db.add(att)
         db.commit()
 
-        # Sample leave
+        # Sample leaves
         leave = Leave(
             employee_id=emps[3].id,
             leave_type_id=1,
@@ -148,12 +174,22 @@ def seed():
             approved_at=datetime.utcnow(),
         )
         db.add(leave)
+        pending_leave = Leave(
+            employee_id=emps[3].id,
+            leave_type_id=2,
+            start_date=today + timedelta(days=3),
+            end_date=today + timedelta(days=4),
+            days=2,
+            reason="Not feeling well, need rest",
+            status="pending",
+        )
+        db.add(pending_leave)
         db.commit()
 
         # Projects
         projects = [
             Project(name="Client A - Web App", code="CA-WEB", status="active"),
-            Project(name="Internal - HRMS", code="INT-HRMS", status="active"),
+            Project(name="Internal - Employee Management System", code="INT-EMS", status="active"),
         ]
         for p in projects:
             db.add(p)
@@ -176,11 +212,34 @@ def seed():
             ))
         db.commit()
 
+        # Onboarding templates
+        onboarding_templates = [
+            OnboardingTemplate(title="Submit ID proof & address proof", category="documents", order=1),
+            OnboardingTemplate(title="Sign offer letter & NDA", category="documents", order=2),
+            OnboardingTemplate(title="Submit bank account details", category="documents", order=3),
+            OnboardingTemplate(title="Laptop / workstation setup", category="it_setup", order=4),
+            OnboardingTemplate(title="Email & Slack account creation", category="it_setup", order=5),
+            OnboardingTemplate(title="VPN & tool access provisioning", category="it_setup", order=6),
+            OnboardingTemplate(title="HR policy orientation session", category="orientation", order=7),
+            OnboardingTemplate(title="Team introduction & manager 1:1", category="orientation", order=8),
+            OnboardingTemplate(title="Office tour & facilities walkthrough", category="orientation", order=9),
+            OnboardingTemplate(title="PF / ESI / tax declaration forms", category="hr_formalities", order=10),
+            OnboardingTemplate(title="Emergency contact form", category="hr_formalities", order=11),
+            OnboardingTemplate(title="Assign buddy / mentor", category="hr_formalities", order=12),
+        ]
+        for t in onboarding_templates:
+            db.add(t)
+        db.commit()
+
         # Notification
-        db.add(Notification(title="Welcome to HRMS", message="System is ready.", type="announcement"))
+        db.add(Notification(title="Welcome to Employee Management System", message="System is ready.", type="announcement"))
         db.commit()
 
         print("Seed data created successfully!")
+        print(
+            f"Employees: 5 demo accounts + {SEED_RANDOM_EMPLOYEE_COUNT} random directory records "
+            f"({5 + SEED_RANDOM_EMPLOYEE_COUNT} total)."
+        )
         print("Login with: admin@hrms.com / password123 (or hr@hrms.com, manager@hrms.com, employee@hrms.com, leadership@hrms.com)")
 
     finally:

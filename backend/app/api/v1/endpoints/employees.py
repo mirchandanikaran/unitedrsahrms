@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 
-from app.models.user import User
+from app.models.user import User, RoleEnum
 from app.api.deps import get_db, get_admin_or_hr, get_current_user
 from app.models.employee import Employee, Department, Designation
 from app.schemas.employee import (
@@ -17,6 +17,8 @@ from app.schemas.employee import (
     EmployeeCreate,
     EmployeeUpdate,
     EmployeeResponse,
+    ReportingNode,
+    ReportingStructureResponse,
 )
 from app.schemas.common import PaginatedResponse
 
@@ -67,6 +69,20 @@ def _employee_to_response(e: Employee, include_manager: bool = True) -> Employee
         department=DepartmentResponse.model_validate(e.department) if e.department else None,
         designation=DesignationResponse.model_validate(e.designation) if e.designation else None,
         manager=manager_resp,
+    )
+
+
+def _to_reporting_node(e: Employee) -> ReportingNode:
+    return ReportingNode(
+        id=e.id,
+        employee_code=e.employee_code,
+        first_name=e.first_name,
+        last_name=e.last_name,
+        email=e.email,
+        department=e.department.name if e.department else None,
+        designation=e.designation.name if e.designation else None,
+        manager_id=e.manager_id,
+        status=e.status,
     )
 
 
@@ -182,6 +198,100 @@ def get_my_profile(
         .first()
     )
     return _employee_to_response(e)
+
+
+@router.get("/reporting-structure", response_model=ReportingStructureResponse)
+def get_reporting_structure(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Admin & leadership: full org reporting tree. Other roles: own manager chain + direct reports."""
+    if current_user.role in (RoleEnum.ADMIN, RoleEnum.LEADERSHIP):
+        emps = (
+            db.query(Employee)
+            .options(
+                joinedload(Employee.department),
+                joinedload(Employee.designation),
+            )
+            .order_by(Employee.employee_code)
+            .all()
+        )
+        return ReportingStructureResponse(
+            scope="organization",
+            nodes=[_to_reporting_node(e) for e in emps],
+            focus_employee_id=None,
+            reports_to_chain=None,
+            direct_reports=None,
+        )
+
+    if not current_user.employee:
+        raise HTTPException(
+            status_code=403,
+            detail="Reporting structure requires a linked employee profile for your role",
+        )
+
+    self_emp = (
+        db.query(Employee)
+        .options(
+            joinedload(Employee.department),
+            joinedload(Employee.designation),
+        )
+        .filter(Employee.id == current_user.employee.id)
+        .first()
+    )
+    if not self_emp:
+        raise HTTPException(404, "Employee not found")
+
+    # Walk up manager chain (immediate manager first, then up); cap depth and detect cycles
+    managers_immediate_first: list[ReportingNode] = []
+    cur = self_emp
+    seen_ids: set[int] = {self_emp.id}
+    for _ in range(64):
+        if not cur.manager_id:
+            break
+        if cur.manager_id in seen_ids:
+            break
+        seen_ids.add(cur.manager_id)
+        mgr = (
+            db.query(Employee)
+            .options(
+                joinedload(Employee.department),
+                joinedload(Employee.designation),
+            )
+            .filter(Employee.id == cur.manager_id)
+            .first()
+        )
+        if not mgr:
+            break
+        managers_immediate_first.append(_to_reporting_node(mgr))
+        cur = mgr
+
+    reports_to_chain = list(reversed(managers_immediate_first))
+
+    subordinates = (
+        db.query(Employee)
+        .options(
+            joinedload(Employee.department),
+            joinedload(Employee.designation),
+        )
+        .filter(Employee.manager_id == self_emp.id)
+        .order_by(Employee.employee_code)
+        .all()
+    )
+    direct_nodes = [_to_reporting_node(s) for s in subordinates]
+
+    self_node = _to_reporting_node(self_emp)
+    by_id: dict[int, ReportingNode] = {}
+    for n in reports_to_chain + [self_node] + direct_nodes:
+        by_id[n.id] = n
+
+    return ReportingStructureResponse(
+        scope="self",
+        nodes=list(by_id.values()),
+        focus_employee_id=self_emp.id,
+        reports_to_chain=reports_to_chain,
+        direct_reports=direct_nodes,
+    )
 
 
 @router.get("/{emp_id}", response_model=EmployeeResponse)

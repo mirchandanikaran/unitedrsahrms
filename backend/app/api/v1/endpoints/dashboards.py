@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, and_, or_, extract
 
 from app.api.deps import get_db, get_leadership_or_above, get_manager_or_above, get_current_user
+from app.utils.date_display import format_display_date
 from app.models.user import User
 from app.models.employee import Employee
 from app.models.attendance import Attendance
@@ -105,8 +106,8 @@ def _leadership_dashboard(db: Session, start_date: date, end_date: date) -> dict
         "headcount": {"total": total, "active": total, "inactive": inactive},
         "department_headcount": dept_headcount,
         "attendance_summary": {
-            "period_start": str(start_date),
-            "period_end": str(end_date),
+            "period_start": format_display_date(start_date),
+            "period_end": format_display_date(end_date),
             "present": present,
             "absent": absent,
         },

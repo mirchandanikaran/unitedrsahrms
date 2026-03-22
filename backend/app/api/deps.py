@@ -66,5 +66,6 @@ LeadershipOrAbove = Annotated[User, Depends(require_roles(RoleEnum.ADMIN, RoleEn
 
 # Callables for use with Depends() when you need to avoid Annotated+default conflict
 get_admin_or_hr = require_roles(RoleEnum.ADMIN, RoleEnum.HR)
+get_admin_only = require_roles(RoleEnum.ADMIN)
 get_manager_or_above = require_roles(RoleEnum.ADMIN, RoleEnum.HR, RoleEnum.MANAGER)
 get_leadership_or_above = require_roles(RoleEnum.ADMIN, RoleEnum.HR, RoleEnum.MANAGER, RoleEnum.LEADERSHIP)

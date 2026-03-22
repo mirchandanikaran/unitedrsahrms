@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Lock, LogIn, User, Copy, Check } from "lucide-react";
+import { PORTAL_NAME, PORTAL_TAGLINE } from "@/lib/brand";
 
 const TEST_PROFILES = [
   { email: "admin@hrms.com", password: "password123", role: "Admin", desc: "Full control" },
@@ -59,14 +60,15 @@ export default function LoginPage() {
       </div>
 
       <Card className="relative w-full max-w-md border-white/70 bg-white/75 backdrop-blur-xl shadow-2xl shadow-blue-200/30 animate-scale-in">
-        <CardHeader className="pb-3 text-center">
-          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 p-2 shadow-lg shadow-blue-500/40">
-            <img src="/brand-logo.png" alt="HRMS" className="h-full w-full object-contain" />
+        <CardHeader className="pb-4 text-center">
+          <div className="mx-auto mb-5 flex h-32 w-32 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 p-3 shadow-lg shadow-blue-500/40 sm:h-36 sm:w-36 sm:p-3.5">
+            <img src="/brand-logo.png" alt="" className="h-full w-full object-contain" />
           </div>
-          <CardTitle className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-3xl font-black tracking-tight text-transparent">
-            HRMS Portal
+          <CardTitle className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-2xl font-black tracking-tight text-transparent sm:text-3xl md:text-4xl">
+            {PORTAL_NAME}
           </CardTitle>
-          <p className="text-sm text-slate-500">Welcome back. Sign in to continue.</p>
+          <p className="text-xs font-medium uppercase tracking-widest text-slate-500">{PORTAL_TAGLINE}</p>
+          <p className="text-sm text-slate-500">Welcome. Sign in to continue.</p>
         </CardHeader>
 
         <CardContent className="space-y-5">

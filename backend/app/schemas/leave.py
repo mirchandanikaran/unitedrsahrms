@@ -10,6 +10,7 @@ class LeaveTypeBase(BaseModel):
     code: str | None = None
     max_days_per_year: float = 0
     is_paid: int = 1
+    probation_months: int = 0
 
 
 class LeaveTypeCreate(LeaveTypeBase):
@@ -29,10 +30,19 @@ class HolidayBase(BaseModel):
     date: date
     year: int
     is_optional: int = 0
+    region: str | None = None
 
 
 class HolidayCreate(HolidayBase):
     pass
+
+
+class HolidayUpdate(BaseModel):
+    name: str | None = None
+    date: Optional[date] = None
+    year: int | None = None
+    is_optional: int | None = None
+    region: str | None = None
 
 
 class HolidayResponse(HolidayBase):
@@ -65,6 +75,7 @@ class LeaveResponse(LeaveBase):
     id: int
     status: str
     approved_by_id: int | None = None
+    approved_by_name: str | None = None
     approved_at: datetime | None = None
     rejection_reason: str | None = None
     created_at: datetime
@@ -80,6 +91,7 @@ class LeaveBalanceResponse(BaseModel):
     leave_type_name: str
     total_days: float
     used_days: float
+    pending_days: float = 0
     balance: float
 
 
@@ -88,3 +100,31 @@ class LeaveBalanceUpdateRequest(BaseModel):
     leave_type_id: int
     total_days: float
     year: int | None = None
+
+
+class CalendarHolidayItem(BaseModel):
+    id: int
+    name: str
+    is_optional: int
+    region: str | None = None
+
+
+class CalendarLeaveItem(BaseModel):
+    leave_id: int
+    employee_id: int
+    employee_name: str
+    leave_type_name: str
+    is_self: bool = False
+
+
+class CalendarDay(BaseModel):
+    date: date
+    mandatory_holidays: list[CalendarHolidayItem]
+    optional_holidays: list[CalendarHolidayItem]
+    approved_leaves: list[CalendarLeaveItem]
+
+
+class LeaveCalendarMonthResponse(BaseModel):
+    year: int
+    month: int
+    days: list[CalendarDay]

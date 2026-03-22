@@ -9,6 +9,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session, joinedload
 
 from app.api.deps import get_db, get_admin_or_hr
+from app.utils.date_display import format_display_date
 from app.models.user import User
 from app.models.employee import Employee
 from app.models.attendance import Attendance
@@ -46,8 +47,8 @@ def _employee_master_csv(db: Session, dept_id: Optional[int], status: Optional[s
             e.designation.name if e.designation else "",
             f"{e.manager.first_name} {e.manager.last_name}" if e.manager else "",
             e.status,
-            str(e.date_of_joining),
-            str(e.exit_date) if e.exit_date else "",
+            format_display_date(e.date_of_joining),
+            format_display_date(e.exit_date) if e.exit_date else "",
         ])
     output.seek(0)
     return output
@@ -72,7 +73,7 @@ def _attendance_csv(
     writer.writerow(["Date", "Employee Code", "Employee Name", "Status", "Check In", "Check Out"])
     for a in rows:
         writer.writerow([
-            str(a.date),
+            format_display_date(a.date),
             a.employee.employee_code if a.employee else "",
             f"{a.employee.first_name} {a.employee.last_name}" if a.employee else "",
             a.status,
@@ -111,8 +112,8 @@ def _leave_csv(
             l.employee.employee_code if l.employee else "",
             f"{l.employee.first_name} {l.employee.last_name}" if l.employee else "",
             l.leave_type.name if l.leave_type else "",
-            str(l.start_date),
-            str(l.end_date),
+            format_display_date(l.start_date),
+            format_display_date(l.end_date),
             l.days,
             l.status,
             l.reason or "",
@@ -150,8 +151,8 @@ def _utilization_csv(
             a.project.name if a.project else "",
             a.allocation_percent,
             "Yes" if a.is_billable else "No",
-            str(a.start_date),
-            str(a.end_date) if a.end_date else "",
+            format_display_date(a.start_date),
+            format_display_date(a.end_date) if a.end_date else "",
             a.role_in_project or "",
         ])
     output.seek(0)
@@ -218,7 +219,9 @@ def export_attendance(
     return StreamingResponse(
         iter([output.getvalue()]),
         media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=attendance_{start_date}_{end_date}.csv"},
+        headers={
+            "Content-Disposition": f"attachment; filename=attendance_{format_display_date(start_date)}_{format_display_date(end_date)}.csv"
+        },
     )
 
 
@@ -235,7 +238,9 @@ def export_leave(
     return StreamingResponse(
         iter([output.getvalue()]),
         media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=leave_{start_date}_{end_date}.csv"},
+        headers={
+            "Content-Disposition": f"attachment; filename=leave_{format_display_date(start_date)}_{format_display_date(end_date)}.csv"
+        },
     )
 
 

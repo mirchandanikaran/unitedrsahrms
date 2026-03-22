@@ -1,6 +1,6 @@
 """Employee, Department, Designation schemas."""
 from datetime import date, datetime
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, EmailStr
 
@@ -97,3 +97,27 @@ class EmployeeResponse(EmployeeBase):
 
 
 EmployeeResponse.model_rebuild()
+
+
+# Reporting structure (manager chain / org tree)
+class ReportingNode(BaseModel):
+    id: int
+    employee_code: str
+    first_name: str
+    last_name: str
+    email: str
+    department: str | None = None
+    designation: str | None = None
+    manager_id: int | None = None
+    status: str
+
+
+class ReportingStructureResponse(BaseModel):
+    """Org-wide (admin, leadership) or personal subtree for everyone else with an employee profile."""
+
+    scope: Literal["self", "organization"]
+    nodes: list[ReportingNode]
+    focus_employee_id: int | None = None
+    # Populated when scope == "self" (top of chain first, down to immediate manager)
+    reports_to_chain: list[ReportingNode] | None = None
+    direct_reports: list[ReportingNode] | None = None

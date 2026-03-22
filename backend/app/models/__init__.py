@@ -7,6 +7,8 @@ from app.models.project import Project, Allocation
 from app.models.performance import PerformanceReview, Goal
 from app.models.notification import Notification
 from app.models.audit import AuditLog
+from app.models.onboarding import OnboardingTemplate, OnboardingItem
+from app.models.profile_request import ProfileUpdateRequest
 
 __all__ = [
     "User",
@@ -25,4 +27,7 @@ __all__ = [
     "Goal",
     "Notification",
     "AuditLog",
+    "OnboardingTemplate",
+    "OnboardingItem",
+    "ProfileUpdateRequest",
 ]

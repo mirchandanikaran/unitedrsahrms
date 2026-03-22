@@ -8,9 +8,14 @@ import {
   Users,
   Clock,
   Calendar,
+  CalendarDays,
   FileText,
   ChevronRight,
   Sparkles,
+  ClipboardList,
+  UserCircle,
+  BarChart3,
+  GitBranch,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 
@@ -19,6 +24,16 @@ const navItems: { href: string; label: string; icon: React.ComponentType<{ class
   { href: "/employees", label: "Employees", icon: Users, roles: ["admin", "hr"] },
   { href: "/attendance", label: "Attendance", icon: Clock, roles: ["admin", "hr"] },
   { href: "/leaves", label: "Leaves", icon: Calendar, roles: ["admin", "hr", "manager", "employee"] },
+  {
+    href: "/leave-calendar",
+    label: "Leave calendar",
+    icon: CalendarDays,
+    roles: ["admin", "hr", "manager", "employee", "leadership"],
+  },
+  { href: "/onboarding", label: "Onboarding", icon: ClipboardList, roles: ["admin", "hr", "employee"] },
+  { href: "/profile", label: "My Profile", icon: UserCircle, roles: ["admin", "hr", "manager", "employee"] },
+  { href: "/reporting", label: "Reporting", icon: GitBranch, roles: ["admin", "hr", "manager", "employee", "leadership"] },
+  { href: "/analytics", label: "Analytics", icon: BarChart3, roles: ["admin", "hr", "leadership"] },
   { href: "/reports", label: "Reports", icon: FileText, roles: ["admin", "hr"] },
 ];
 
@@ -29,17 +44,8 @@ export function Sidebar() {
   const visible = navItems.filter((item) => user && item.roles.includes(user.role));
 
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-white/60 bg-gradient-to-b from-white to-blue-50/70 shadow-lg shadow-blue-100/40 backdrop-blur">
-      <div className="flex h-20 items-center gap-3 border-b border-white/70 px-5">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 p-1 shadow-md shadow-blue-500/40">
-          <img src="/brand-logo.png" alt="HRMS" className="h-full w-full object-contain" />
-        </div>
-        <div>
-          <p className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-lg font-black tracking-tight text-transparent">HRMS</p>
-          <p className="text-[11px] text-slate-500">People OS</p>
-        </div>
-      </div>
-      <div className="px-4 pt-3 text-[11px] uppercase tracking-wide text-slate-400">Navigation</div>
+    <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col border-r border-white/60 bg-gradient-to-b from-white to-blue-50/70 shadow-lg shadow-blue-100/40 backdrop-blur">
+      <div className="border-b border-white/70 px-4 pb-2 pt-5 text-[11px] uppercase tracking-wide text-slate-400">Navigation</div>
       <nav className="space-y-1 p-3">
         {visible.map((item) => {
           const Icon = item.icon;

@@ -5,7 +5,7 @@ import { api, Employee, Paginated, Department, Designation } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { format } from "date-fns";
+import { formatDisplayDate } from "@/lib/dateFormat";
 import { Search, Download, Users, ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 
@@ -184,7 +184,7 @@ export default function EmployeesPage() {
                         {e.status}
                       </span>
                     </td>
-                    <td className="p-4 text-slate-600">{format(new Date(e.date_of_joining), "dd MMM yyyy")}</td>
+                    <td className="p-4 text-slate-600">{formatDisplayDate(e.date_of_joining)}</td>
                     {isAdmin && (
                       <td className="p-4">
                         <Button
@@ -209,19 +209,25 @@ export default function EmployeesPage() {
               <p>No employees found</p>
             </div>
           )}
-          {data && data.total_pages > 1 && (
-            <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-4 py-3">
+          {data && data.items.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-slate-50/50 px-4 py-3">
               <p className="text-sm text-slate-600">
-                Page {page} of {data.total_pages} <span className="text-slate-400">({data.total} total)</span>
+                Showing {(page - 1) * (data.per_page || 10) + 1}–
+                {Math.min(page * (data.per_page || 10), data.total)} of {data.total} employees
+                {data.total_pages > 1 && (
+                  <span className="text-slate-400"> · page {page} of {data.total_pages}</span>
+                )}
               </p>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)} className="rounded-lg">
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="sm" disabled={page >= data.total_pages} onClick={() => setPage(page + 1)} className="rounded-lg">
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
+              {data.total_pages > 1 && (
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)} className="rounded-lg">
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" disabled={page >= data.total_pages} onClick={() => setPage(page + 1)} className="rounded-lg">
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </CardContent>

@@ -5,6 +5,7 @@ import { api, Attendance, Paginated } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { format, subDays } from "date-fns";
+import { formatDisplayDate } from "@/lib/dateFormat";
 import { Clock, Download, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function AttendancePage() {
@@ -59,7 +60,7 @@ export default function AttendancePage() {
               <tbody>
                 {data?.items.map((a) => (
                   <tr key={a.id} className="border-b border-slate-50 last:border-0 hover:bg-blue-50/30 transition-colors">
-                    <td className="p-4 text-slate-700">{format(new Date(a.date), "dd MMM yyyy")}</td>
+                    <td className="p-4 text-slate-700">{formatDisplayDate(a.date)}</td>
                     <td className="p-4 font-medium text-slate-800">{a.employee_name || "-"}</td>
                     <td className="p-4">
                       <span className={`inline-flex rounded-lg px-2.5 py-1 text-xs font-medium ${
