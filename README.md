@@ -1,6 +1,6 @@
 # HRMS - Human Resource Management System
 
-A production-ready HRMS for consulting/IT services firms. Manages employees, attendance, leaves, projects, allocations, and provides leadership dashboards.
+A production-ready HRMS for consulting/IT services firms. Manages employees, attendance, leaves, and provides leadership dashboards with role-based access control.
 
 ## Tech Stack
 
@@ -52,7 +52,13 @@ npm run dev
 
 Open http://localhost:3000
 
-**Demo login:** admin@hrms.com / password123
+**Demo logins:**
+
+| Role       | Email              | Password    |
+|------------|--------------------|-------------|
+| Admin      | admin@hrms.com     | password123 |
+| Leadership | leadership@hrms.com| password123 |
+| Employee   | john@hrms.com      | password123 |
 
 ---
 
@@ -136,13 +142,13 @@ docker run -p 3000:3000 -e NEXT_PUBLIC_API_URL=http://backend:8000 hrms-frontend
 
 ## Roles & Access
 
-| Role     | Access                                              |
-|----------|-----------------------------------------------------|
-| Admin    | Full control                                        |
-| HR       | Employees, leaves, reports, attendance              |
-| Manager  | Team view, leave approvals                          |
-| Employee | Self-service (profile, leave, projects)             |
-| Leadership | Read-only dashboards                             |
+| Role       | Access                                                        |
+|------------|---------------------------------------------------------------|
+| Admin      | Full control: add/remove employees, manage leave balances, all modules |
+| HR         | Employees, leaves, reports, attendance                        |
+| Manager    | Team view, leave approvals                                    |
+| Employee   | Self-service (profile, attendance, leave)                     |
+| Leadership | Read-only dashboards and reports                              |
 
 ---
 
