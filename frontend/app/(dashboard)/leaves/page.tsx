@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api, Leave, Paginated, LeaveBalance } from "@/lib/api";
+import { api, Leave, Paginated, LeaveBalance, LeaveType } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { Calendar, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -12,6 +13,14 @@ export default function LeavesPage() {
   const { user } = useAuthStore();
   const [leaves, setLeaves] = useState<Paginated<Leave> | null>(null);
   const [balance, setBalance] = useState<LeaveBalance[]>([]);
+  const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
+  const [balanceEmployeeId, setBalanceEmployeeId] = useState("");
+  const [balanceForm, setBalanceForm] = useState({
+    employee_id: "",
+    leave_type_id: "",
+    total_days: "",
+    year: String(new Date().getFullYear()),
+  });
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -20,6 +29,7 @@ export default function LeavesPage() {
 
   useEffect(() => {
     api.leaves.balance().then(setBalance).catch(console.error);
+    api.leaves.types().then(setLeaveTypes).catch(console.error);
   }, []);
 
   const canApprove = ["admin", "hr", "manager"].includes(user?.role || "");
@@ -35,6 +45,34 @@ export default function LeavesPage() {
     }).catch(console.error);
   };
 
+  const isAdmin = user?.role === "admin";
+
+  const refreshBalance = () => {
+    const params: Record<string, string> = {};
+    if (balanceEmployeeId) params.employee_id = balanceEmployeeId;
+    api.leaves.balance(params).then(setBalance).catch(console.error);
+  };
+
+  const updateBalance = async () => {
+    if (!balanceForm.employee_id || !balanceForm.leave_type_id || !balanceForm.total_days) {
+      alert("Please fill employee, leave type, and total days.");
+      return;
+    }
+    try {
+      await api.leaves.updateBalance({
+        employee_id: Number(balanceForm.employee_id),
+        leave_type_id: Number(balanceForm.leave_type_id),
+        total_days: Number(balanceForm.total_days),
+        year: Number(balanceForm.year),
+      });
+      if (!balanceEmployeeId) setBalanceEmployeeId(balanceForm.employee_id);
+      refreshBalance();
+      alert("Leave balance updated.");
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to update balance");
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-800">
@@ -43,6 +81,52 @@ export default function LeavesPage() {
         </div>
         Leaves
       </h1>
+      {isAdmin && (
+        <Card className="border-0 shadow-lg shadow-slate-200/50">
+          <CardContent className="pt-6">
+            <h2 className="mb-3 font-semibold text-slate-800">Admin: Update Leave Balance</h2>
+            <div className="grid gap-3 md:grid-cols-5">
+              <Input
+                placeholder="Employee ID"
+                value={balanceForm.employee_id}
+                onChange={(e) => setBalanceForm({ ...balanceForm, employee_id: e.target.value })}
+              />
+              <select
+                className="h-10 rounded-md border border-slate-200 px-3 text-sm"
+                value={balanceForm.leave_type_id}
+                onChange={(e) => setBalanceForm({ ...balanceForm, leave_type_id: e.target.value })}
+              >
+                <option value="">Leave Type</option>
+                {leaveTypes.map((lt) => <option key={lt.id} value={lt.id}>{lt.name}</option>)}
+              </select>
+              <Input
+                placeholder="Total Days"
+                type="number"
+                value={balanceForm.total_days}
+                onChange={(e) => setBalanceForm({ ...balanceForm, total_days: e.target.value })}
+              />
+              <Input
+                placeholder="Year"
+                type="number"
+                value={balanceForm.year}
+                onChange={(e) => setBalanceForm({ ...balanceForm, year: e.target.value })}
+              />
+              <Button onClick={updateBalance} className="bg-blue-600 text-white hover:bg-blue-700">
+                Update
+              </Button>
+            </div>
+            <div className="mt-3 flex items-center gap-2">
+              <Input
+                placeholder="View balances for Employee ID (optional)"
+                value={balanceEmployeeId}
+                onChange={(e) => setBalanceEmployeeId(e.target.value)}
+                className="max-w-sm"
+              />
+              <Button variant="outline" onClick={refreshBalance}>Refresh Balance</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       {balance.length > 0 && (
         <Card className="border-0 shadow-lg shadow-slate-200/50">
           <CardContent className="pt-6">

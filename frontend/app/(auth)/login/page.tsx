@@ -60,8 +60,8 @@ export default function LoginPage() {
 
       <Card className="relative w-full max-w-md border-white/70 bg-white/75 backdrop-blur-xl shadow-2xl shadow-blue-200/30 animate-scale-in">
         <CardHeader className="pb-3 text-center">
-          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 p-2 shadow-lg shadow-blue-500/40">
-            <img src="/logo.svg" alt="HRMS" className="h-full w-full object-contain" />
+          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 p-2 shadow-lg shadow-blue-500/40">
+            <img src="/brand-logo.png" alt="HRMS" className="h-full w-full object-contain" />
           </div>
           <CardTitle className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-3xl font-black tracking-tight text-transparent">
             HRMS Portal

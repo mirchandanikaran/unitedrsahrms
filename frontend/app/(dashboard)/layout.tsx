@@ -47,9 +47,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <Sidebar />
       <div className="relative pl-64">
         <img
-          src="/logo.svg"
+          src="/brand-logo.png"
           alt="HRMS watermark"
-          className="pointer-events-none absolute bottom-6 right-6 h-16 w-16 opacity-10"
+          className="pointer-events-none absolute bottom-6 right-6 h-20 w-20 opacity-20"
         />
         <TopBar dark={dark} toggleDark={() => setDark(!dark)} />
         <main className="animate-fade-in p-6">{children}</main>

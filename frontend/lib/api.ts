@@ -47,6 +47,8 @@ export const api = {
       request<Employee>("/employees", { method: "POST", body: JSON.stringify(data) }),
     update: (id: number, data: Partial<Employee>) =>
       request<Employee>(`/employees/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    remove: (id: number) =>
+      request<{ message: string; employee_id: number }>(`/employees/${id}`, { method: "DELETE" }),
     departments: () => request<Department[]>("/employees/departments"),
     designations: () => request<Designation[]>("/employees/designations"),
   },
@@ -66,6 +68,8 @@ export const api = {
     types: () => request<LeaveType[]>("/leaves/types"),
     holidays: (year?: number) =>
       request<Holiday[]>("/leaves/holidays", { params: year ? { year: String(year) } : {} }),
+    updateBalance: (data: { employee_id: number; leave_type_id: number; total_days: number; year?: number }) =>
+      request<{ message: string }>("/leaves/balance", { method: "PUT", body: JSON.stringify(data) }),
   },
   projects: {
     list: (params?: Record<string, string>) => request<Paginated<Project>>("/projects", { params }),
@@ -210,5 +214,4 @@ export interface ManagerDashboard {
 }
 export interface EmployeeDashboard {
   attendance: { present_days: number; absent_days: number };
-  assigned_projects: { project_name: string; allocation: number; billable: boolean }[];
 }

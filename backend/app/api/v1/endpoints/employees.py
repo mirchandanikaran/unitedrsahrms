@@ -237,3 +237,22 @@ def update_employee(
     db.commit()
     db.refresh(emp)
     return _employee_to_response(emp)
+
+
+@router.delete("/{emp_id}")
+def remove_employee(
+    emp_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_admin_or_hr),
+):
+    emp = db.query(Employee).filter(Employee.id == emp_id).first()
+    if not emp:
+        raise HTTPException(404, "Employee not found")
+
+    # Soft remove to preserve historical records and avoid FK issues.
+    emp.status = "inactive"
+    emp.exit_date = date.today()
+    if emp.user:
+        emp.user.is_active = False
+    db.commit()
+    return {"message": "Employee removed (set inactive)", "employee_id": emp_id}

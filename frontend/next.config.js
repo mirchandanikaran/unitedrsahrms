@@ -2,7 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
   output: "standalone",
-  experimental: { optimizePackageImports: ["lucide-react"] },
   async rewrites() {
     const backend = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
     return [

@@ -1,6 +1,6 @@
 """Leave and Holiday models."""
 from datetime import datetime, date
-from sqlalchemy import Column, Integer, String, Float, DateTime, Date, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, Float, DateTime, Date, ForeignKey, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from app.db.database import Base
@@ -48,3 +48,22 @@ class Holiday(Base):
     year = Column(Integer, nullable=False, index=True)
     is_optional = Column(Integer, default=0)  # 0=mandatory, 1=optional
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class EmployeeLeaveBalance(Base):
+    """Manual leave balance overrides per employee/type/year."""
+    __tablename__ = "employee_leave_balances"
+    __table_args__ = (
+        UniqueConstraint("employee_id", "leave_type_id", "year", name="uq_emp_leave_balance"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    employee_id = Column(Integer, ForeignKey("employees.id"), nullable=False, index=True)
+    leave_type_id = Column(Integer, ForeignKey("leave_types.id"), nullable=False, index=True)
+    year = Column(Integer, nullable=False, index=True)
+    total_days = Column(Float, nullable=False, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    employee = relationship("Employee", backref="leave_balance_overrides")
+    leave_type = relationship("LeaveType", backref="employee_overrides")

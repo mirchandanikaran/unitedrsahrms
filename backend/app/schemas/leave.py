@@ -81,3 +81,10 @@ class LeaveBalanceResponse(BaseModel):
     total_days: float
     used_days: float
     balance: float
+
+
+class LeaveBalanceUpdateRequest(BaseModel):
+    employee_id: int
+    leave_type_id: int
+    total_days: float
+    year: int | None = None

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { api, LeadershipDashboard, ManagerDashboard, EmployeeDashboard } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserCheck, Clock, Calendar, TrendingUp, Briefcase } from "lucide-react";
+import { Users, UserCheck, Clock, Calendar, TrendingUp } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 
 const CARD_COLORS = [
@@ -161,16 +161,15 @@ export default function DashboardPage() {
     );
   }
 
-  if (data && "assigned_projects" in data) {
+  if (data && "attendance" in data) {
     const d = data as EmployeeDashboard;
     return (
       <div className="space-y-6 animate-fade-in">
         <h1 className="text-2xl font-bold text-slate-800">My Dashboard</h1>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2">
           {[
             { label: "Present Days", value: d.attendance?.present_days || 0, icon: Clock },
             { label: "Absent Days", value: d.attendance?.absent_days || 0, icon: Calendar },
-            { label: "Assigned Projects", value: d.assigned_projects?.length || 0, icon: Briefcase },
           ].map((item, i) => {
             const Icon = item.icon;
             return (
@@ -188,25 +187,6 @@ export default function DashboardPage() {
             );
           })}
         </div>
-        {d.assigned_projects?.length ? (
-          <Card className="border-0 shadow-lg shadow-slate-200/50">
-            <CardHeader>
-              <CardTitle className="text-slate-800">My Projects</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {d.assigned_projects.map((p, i) => (
-                  <div key={i} className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/50 p-3 hover:bg-blue-50/50 transition-colors">
-                    <span className="font-medium text-slate-700">{p.project_name}</span>
-                    <span className="rounded-lg bg-blue-100 px-2 py-1 text-sm font-medium text-blue-700">
-                      {p.allocation}% {p.billable && "• Billable"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ) : null}
       </div>
     );
   }

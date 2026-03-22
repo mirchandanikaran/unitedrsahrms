@@ -8,7 +8,7 @@ from sqlalchemy import func
 
 from app.api.deps import get_db, get_admin_or_hr, get_manager_or_above, get_current_user
 from app.models.user import User
-from app.models.leave import Leave, LeaveType, Holiday
+from app.models.leave import Leave, LeaveType, Holiday, EmployeeLeaveBalance
 from app.models.employee import Employee
 from app.schemas.leave import (
     LeaveCreate,
@@ -19,6 +19,7 @@ from app.schemas.leave import (
     HolidayCreate,
     HolidayResponse,
     LeaveBalanceResponse,
+    LeaveBalanceUpdateRequest,
 )
 from app.schemas.common import PaginatedResponse
 
@@ -77,12 +78,24 @@ def get_leave_balance(
 ):
     emp_id = employee_id or (current_user.employee.id if current_user.employee else None)
     if not emp_id:
+        # Admin/HR may query specific employees from UI; empty response by default.
+        if current_user.role.value in ["admin", "hr"]:
+            return []
         raise HTTPException(400, "employee_id required")
     yr = year or date.today().year
     types = db.query(LeaveType).all()
     result = []
     for lt in types:
-        total = lt.max_days_per_year if lt.max_days_per_year > 0 else 999
+        override = (
+            db.query(EmployeeLeaveBalance)
+            .filter(
+                EmployeeLeaveBalance.employee_id == emp_id,
+                EmployeeLeaveBalance.leave_type_id == lt.id,
+                EmployeeLeaveBalance.year == yr,
+            )
+            .first()
+        )
+        total = override.total_days if override else (lt.max_days_per_year if lt.max_days_per_year > 0 else 999)
         used = (
             db.query(func.coalesce(func.sum(Leave.days), 0))
             .filter(
@@ -104,6 +117,44 @@ def get_leave_balance(
             )
         )
     return result
+
+
+@router.put("/balance")
+def update_leave_balance(
+    data: LeaveBalanceUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_admin_or_hr),
+):
+    yr = data.year or date.today().year
+    emp = db.query(Employee).filter(Employee.id == data.employee_id).first()
+    if not emp:
+        raise HTTPException(404, "Employee not found")
+    lt = db.query(LeaveType).filter(LeaveType.id == data.leave_type_id).first()
+    if not lt:
+        raise HTTPException(404, "Leave type not found")
+
+    row = (
+        db.query(EmployeeLeaveBalance)
+        .filter(
+            EmployeeLeaveBalance.employee_id == data.employee_id,
+            EmployeeLeaveBalance.leave_type_id == data.leave_type_id,
+            EmployeeLeaveBalance.year == yr,
+        )
+        .first()
+    )
+    if not row:
+        row = EmployeeLeaveBalance(
+            employee_id=data.employee_id,
+            leave_type_id=data.leave_type_id,
+            year=yr,
+            total_days=data.total_days,
+        )
+        db.add(row)
+    else:
+        row.total_days = data.total_days
+    db.commit()
+    db.refresh(row)
+    return {"message": "Leave balance updated", "employee_id": row.employee_id, "leave_type_id": row.leave_type_id, "year": row.year, "total_days": row.total_days}
 
 
 @router.get("", response_model=PaginatedResponse[LeaveResponse])
