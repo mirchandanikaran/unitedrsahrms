@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HRMS How-To Guide</title>
+  <link rel="stylesheet" href="./guide.css" />
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <h1>Employee Management System - How To Use</h1>
+      <p>User-focused guide for employees, managers, HR, admin, and leadership.</p>
+      <span class="pill">HTML Guide</span>
+    </section>
+
+    <section class="card">
+      <h2>1) Getting started</h2>
+      <ol>
+        <li>Open the portal URL (local dev: <code>http://localhost:3000</code>).</li>
+        <li>Sign in with your work email and password.</li>
+        <li>Use logout in the top bar when finished.</li>
+      </ol>
+      <p class="muted">Dates are displayed as <strong>DD-MMM-YY</strong> across the UI.</p>
+    </section>
+
+    <section class="card">
+      <h2>2) Roles at a glance</h2>
+      <table>
+        <thead>
+          <tr><th>Role</th><th>Typical access</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Employee</td><td>Leaves, profile requests, onboarding, reporting line, awards/social participation.</td></tr>
+          <tr><td>Manager</td><td>Employee access + team leave approvals.</td></tr>
+          <tr><td>HR</td><td>Employees, attendance, leaves, reports, onboarding, profile reviews, analytics, moderation.</td></tr>
+          <tr><td>Admin</td><td>Full control including holiday event manager, department manager, and organization reporting.</td></tr>
+          <tr><td>Leadership</td><td>Executive dashboard/analytics, org-wide reporting, awards/social participation.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>3) Leave calendar</h2>
+      <ul>
+        <li><strong>Active (blue):</strong> Monday to Saturday working days.</li>
+        <li><strong>Inactive (grey):</strong> Sundays, holidays, and approved leave days.</li>
+        <li>Use month navigation arrows to move between months.</li>
+        <li>Check <strong>Upcoming inactive days</strong> for planning.</li>
+      </ul>
+      <div class="callout warn">Pending leave requests do not appear until approved.</div>
+    </section>
+
+    <section class="card">
+      <h2>4) Leaves</h2>
+      <h3>Employees</h3>
+      <ul>
+        <li>Apply for leave with type, dates, and reason.</li>
+        <li>Track pending, approved, and rejected status.</li>
+      </ul>
+      <h3>Managers / HR / Admin</h3>
+      <ul>
+        <li>Approve or reject requests.</li>
+        <li>Add a clear rejection reason when rejecting.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>5) Employees and departments (Admin/HR)</h2>
+      <h3>Employees</h3>
+      <ul>
+        <li>Add, edit, search, export, and soft-remove employees.</li>
+      </ul>
+      <h3>Department manager (Admin)</h3>
+      <ul>
+        <li>Open <strong>Employees → Manage Departments</strong>.</li>
+        <li>Add department types (name, code, description).</li>
+        <li>Edit existing department types as needed.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>6) Awards</h2>
+      <ul>
+        <li><strong>Admin/HR:</strong> grant and remove award badges.</li>
+        <li><strong>All users:</strong> view badges and recognition history.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>7) Social Wall</h2>
+      <ul>
+        <li>Create short posts.</li>
+        <li>Like and comment on posts.</li>
+        <li>Delete your own posts/comments.</li>
+        <li><strong>Admin/HR</strong> can moderate by deleting inappropriate content.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>8) Other key modules</h2>
+      <div class="grid">
+        <div>
+          <h3>Onboarding</h3>
+          <p>Employees complete checklist items; admin/HR can initialize onboarding for new hires.</p>
+        </div>
+        <div>
+          <h3>My Profile</h3>
+          <p>Employees submit profile change requests; HR/Admin approve or reject.</p>
+        </div>
+        <div>
+          <h3>Reporting</h3>
+          <p>View manager chain and direct reports; admin/leadership can view org-wide structure.</p>
+        </div>
+        <div>
+          <h3>Analytics & Reports</h3>
+          <p>Leadership metrics and downloadable CSVs for HR/Admin.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>9) Quick tips</h2>
+      <ul>
+        <li>Apply leave early and check inactive day highlights before planning.</li>
+        <li>Use Awards and Social Wall for positive engagement.</li>
+        <li>Log out on shared machines.</li>
+      </ul>
+    </section>
+
+    <p class="footer">
+      Document generated from <code>docs/HOW_TO_USE.md</code>. Update this file when user flows change.
+    </p>
+  </main>
+</body>
+</html>

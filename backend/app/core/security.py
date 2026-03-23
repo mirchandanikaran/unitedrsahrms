@@ -12,7 +12,11 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash."""
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception:
+        # passlib/bcrypt mismatch can raise (e.g. bcrypt 5.x + passlib 1.7.4) — avoid 500 on login
+        return False
 
 
 def get_password_hash(password: str) -> str:

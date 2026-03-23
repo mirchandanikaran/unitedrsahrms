@@ -64,20 +64,22 @@ Throughout the portal, **dates are shown as DD-MMM-YY** (for example **26-Jan-25
 ### What it shows
 
 - **Month view** (use arrows to change month).
-- **Mandatory holidays** (India **IN** region — company / gazetted-style days).
-- **Optional holidays** (shown differently in the legend).
+- **Active vs inactive days**:
+  - **Active**: normal working days (**Monday to Saturday**).
+  - **Inactive (grey)**: **Sundays**, configured holidays, and approved leave days.
+- **Upcoming inactive days** panel so employees can quickly see upcoming days off.
 - **Approved employee leave** only — names appear on the dates they are approved off.
 
 **Important:** **Pending** leave applications **do not** appear here. After a **manager** (or HR/admin) **approves** the request, it shows on the calendar for everyone (refresh or revisit the month).
 
-### If you are an Admin — maintain the holiday list each year
+### If you are an Admin — Event Manager (holiday calendar)
 
-1. Scroll to **Admin: mandatory & optional holiday calendar**.
+1. Scroll to **Admin Event Manager: holiday calendar**.
 2. Choose the **Year**.
 3. **Add holiday:** name, date, and whether it is **Mandatory** or optional; save.
 4. **Edit** or **Delete** existing rows as needed.
 
-Only **Admin** can add, edit, or delete holidays. **HR** and others can **view** the calendar and holidays but not change the master list.
+Only **Admin** can add, edit, or delete holiday events. **HR** and others can **view** the calendar and holidays but not change the master list.
 
 ---
 
@@ -165,7 +167,7 @@ Use this to understand **escalation** and **who approves leave** in your chain.
 
 ---
 
-## 9. Employees & attendance (HR / Admin)
+## 9. Employees, department types & attendance (HR / Admin)
 
 ### Employees
 
@@ -173,6 +175,14 @@ Use this to understand **escalation** and **who approves leave** in your chain.
 
 - Search and browse the directory.
 - **Admin / HR:** add employees, update records, or **soft-remove** (deactivate) as per policy.
+
+### Department types (Admin)
+
+Inside **Employees** → **Admin Actions**:
+
+- Open **Manage Departments**.
+- Add department type with **name**, optional **code**, and optional **description**.
+- Edit existing department type values and save.
 
 ### Attendance
 
@@ -183,7 +193,28 @@ Use this to understand **escalation** and **who approves leave** in your chain.
 
 ---
 
-## 10. Analytics & reports (HR / Admin / Leadership)
+## 10. Awards & social wall
+
+### Awards
+
+**Menu:** **Awards**
+
+- **Admin/HR:** grant and remove award badges for employees.
+- **All roles:** view awarded badges.
+- This section is useful for recognition programs (e.g., Team Player, Innovation, Leadership).
+
+### Social Wall
+
+**Menu:** **Social Wall**
+
+- Post short updates to the organization feed.
+- Like and comment on posts.
+- Delete your own posts/comments.
+- **Admin/HR** can moderate by deleting inappropriate posts/comments.
+
+---
+
+## 11. Analytics & reports (HR / Admin / Leadership)
 
 ### Analytics
 
@@ -200,11 +231,13 @@ Use this to understand **escalation** and **who approves leave** in your chain.
 
 ---
 
-## 11. Tips & good practice
+## 12. Tips & good practice
 
 | Topic | Suggestion |
 |-------|------------|
 | **Leave** | Apply early; check **Leave calendar** for holidays and team visibility after approval. |
+| **Calendar colors** | Treat **grey** as inactive (Sunday/holiday/approved leave) and **blue** as active working days. |
+| **Recognition** | Use **Awards** and **Social Wall** for positive shout-outs and team updates. |
 | **Rejections** | Managers should always add a **clear rejection reason**. |
 | **Profile** | Do not expect instant updates — wait for HR/Admin approval. |
 | **Security** | Log out on shared PCs; do not share passwords. |
@@ -212,7 +245,7 @@ Use this to understand **escalation** and **who approves leave** in your chain.
 
 ---
 
-## 12. Demo accounts (local / training only)
+## 13. Demo accounts (local / training only)
 
 If your environment was seeded with sample data, training accounts often look like this (password is usually **`password123`** — change in production):
 
@@ -228,14 +261,14 @@ If your environment was seeded with sample data, training accounts often look li
 
 ---
 
-## 13. Further technical documentation
+## 14. Further technical documentation
 
 - **API reference (Swagger):** `http://<your-api-host>:8000/docs` (when the backend is running).
 - **Developers:** see **[README](../README.md)** for environment variables, database, and deployment.
 
 ---
 
-## 14. Need help?
+## 15. Need help?
 
 - **Access or role issues** → HR or IT admin.  
 - **Wrong pay / policy** → HR; the tool only reflects what is configured.  

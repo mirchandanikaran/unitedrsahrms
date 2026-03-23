@@ -11,6 +11,8 @@ psycopg2-binary==2.9.9
 # Auth
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+# passlib 1.7.4 expects bcrypt<4.1 (no __about__); bcrypt 5.x breaks verify_password → HTTP 500 on login
+bcrypt>=4.0.1,<4.1.0
 
 # Validation & Utils
 pydantic==2.6.1

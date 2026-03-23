@@ -2,7 +2,7 @@
 
 A production-ready **Employee Management System** for consulting/IT services firms. Manages employees, attendance, leaves, onboarding, self-service profile changes, and executive analytics—with role-based access control and leadership dashboards.
 
-**User guide:** see **[How to use the Employee Management System](docs/HOW_TO_USE.md)** (sign-in, roles, leaves, calendar, onboarding, profile, reporting, date format, and tips).
+**User guide:** see **[How to use the Employee Management System](docs/HOW_TO_USE.md)** (sign-in, roles, leaves, calendar, onboarding, profile, awards, social wall, reporting, date format, and tips).
 
 ## Tech Stack
 
@@ -14,12 +14,15 @@ A production-ready **Employee Management System** for consulting/IT services fir
 
 | Area | Description |
 |------|-------------|
-| **Employees** | Directory, search, export; **Admin:** add / soft-remove employees |
+| **Employees** | Directory, search, export; **Admin:** add / edit / soft-remove employees |
+| **Department manager** | **Admin:** add and edit department types (name, code, description) from Employees page |
 | **Attendance** | Records, filters, CSV export |
 | **Leaves** | Apply with reason; **Managers / Admin / HR:** approve or reject with remarks; balance shows **used**, **pending**, and **total** per type; holidays list |
-| **Leave calendar** | Month grid for all roles: **India (IN)** mandatory vs optional holidays + **approved** leaves (updates when leave is approved). **Admin:** add/edit/delete holidays per year |
+| **Leave calendar** | Month grid for all roles with status markers: **Mon-Sat active**, **Sunday/holiday/approved leave inactive (grey)**; includes upcoming inactive days. **Admin:** Event Manager for holiday add/edit/delete per year |
 | **Onboarding** | Template-based checklist (documents, IT, orientation, HR); **Admin/HR:** init for a new hire; employees complete items |
 | **My Profile** | View profile; **Employees:** request changes (phone, address, emergency contact, DOB) pending **Admin/HR** approval |
+| **Awards** | Badge-based recognition wall; **Admin/HR:** grant/remove award badges; users view earned badges |
+| **Social wall** | Viva Engage-style mini social feed: post updates, like/unlike, comment, and role-based moderation |
 | **Analytics** | Executive KPIs: attrition, diversity, tenure, hiring velocity, utilization, leave liability, attendance trends (Admin, HR, Leadership) |
 | **Reports** | CSV exports (employee master, attendance, etc.) |
 | **Dashboards** | Role-specific: leadership, manager, employee |
@@ -38,6 +41,8 @@ A production-ready **Employee Management System** for consulting/IT services fir
 | `/leave-calendar` | Admin, HR, Manager, Employee, Leadership |
 | `/onboarding` | Admin, HR, Employee |
 | `/profile` | Admin, HR, Manager, Employee |
+| `/awards` | Admin, HR, Manager, Employee, Leadership |
+| `/social` | Admin, HR, Manager, Employee, Leadership |
 | `/reporting` | Admin, HR, Manager, Employee, Leadership |
 | `/analytics` | Admin, HR, Leadership |
 | `/reports` | Admin, HR |
@@ -223,7 +228,8 @@ Most JSON bodies still use **ISO-8601** dates (`YYYY-MM-DD`); the **web UI** and
 ### API highlights (prefix `/api/v1`)
 
 - `POST /auth/login` — JWT
-- `GET|POST /employees`, `DELETE /employees/{id}`, `GET /employees/me`, `GET /employees/reporting-structure` — directory, self, reporting (org for admin/leadership; personal chain + reports for others)
+- `GET|POST /employees`, `PUT|DELETE /employees/{id}`, `GET /employees/me`, `GET /employees/reporting-structure` — directory, self, reporting (org for admin/leadership; personal chain + reports for others)
+- `GET|POST /employees/departments`, `PUT /employees/departments/{id}` — department type management (Admin/HR)
 - `GET|POST /attendance`, bulk mark
 - `GET|POST /leaves`, `PUT /leaves/{id}/approve`, `GET /leaves/balance` (includes **pending_days**), `PUT /leaves/balance` (Admin/HR override)
 - `GET /leaves/calendar` — month view (`year`, `month`, `region` default `IN`): mandatory/optional holidays + all **approved** leaves
@@ -231,6 +237,8 @@ Most JSON bodies still use **ISO-8601** dates (`YYYY-MM-DD`); the **web UI** and
 - `POST|PUT|DELETE /leaves/holidays` — **Admin only** (yearly mandatory/optional holiday maintenance)
 - `GET|POST /onboarding/templates`, `POST /onboarding/initialize/{employee_id}`, `GET|PUT /onboarding/items`
 - `GET|POST /profile-requests`, `PUT /profile-requests/{id}/review`
+- `GET|POST /awards`, `DELETE /awards/{id}` — employee award badge management
+- `GET|POST /social/posts`, `DELETE /social/posts/{id}`, `POST /social/posts/{id}/like`, `POST /social/posts/{id}/comments`, `DELETE /social/comments/{id}` — social wall
 - `GET /analytics/executive` — executive suite
 - `GET /dashboards/leadership|manager|employee`
 - `GET /reports/.../export` — CSV downloads
@@ -241,11 +249,11 @@ Most JSON bodies still use **ISO-8601** dates (`YYYY-MM-DD`); the **web UI** and
 
 | Role       | Access |
 |------------|--------|
-| **Admin**  | Full control: employees, leave balances, **holiday calendar (CRUD)**, onboarding templates, profile approvals, analytics, reports, **org-wide reporting structure** |
-| **HR**     | Employees, leaves (incl. approvals), attendance, reports, onboarding, profile approvals, analytics, **own reporting chain** (view holidays; **admin** edits holiday master) |
-| **Manager**| Team leaves (list + approve/reject), own profile, onboarding (as employee), dashboard, **own reporting chain** |
-| **Employee** | Own leaves (apply + history + remarks), profile requests, onboarding checklist, **own reporting chain** |
-| **Leadership** | Dashboards, executive analytics (read-oriented), **org-wide reporting structure** |
+| **Admin**  | Full control: employees (add/edit/soft-remove), department types, leave balances, **holiday Event Manager (CRUD)**, onboarding templates, profile approvals, awards/social moderation, analytics, reports, **org-wide reporting structure** |
+| **HR**     | Employees, leaves (incl. approvals), attendance, reports, onboarding, profile approvals, analytics, awards/social moderation, **own reporting chain** (view holidays; **admin** edits holiday master) |
+| **Manager**| Team leaves (list + approve/reject), own profile, onboarding (as employee), dashboard, awards/social participation, **own reporting chain** |
+| **Employee** | Own leaves (apply + history + remarks), profile requests, onboarding checklist, awards/social participation, **own reporting chain** |
+| **Leadership** | Dashboards, executive analytics (read-oriented), awards/social participation, **org-wide reporting structure** |
 
 ---
 

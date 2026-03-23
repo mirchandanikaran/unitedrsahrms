@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDisplayDate } from "@/lib/dateFormat";
-import { Search, Download, Users, ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
+import { Search, Download, Users, ChevronLeft, ChevronRight, Plus, Trash2, Pencil, Save, X, Building2 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 
 export default function EmployeesPage() {
@@ -17,6 +17,10 @@ export default function EmployeesPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [showDeptManager, setShowDeptManager] = useState(false);
+  const [editingEmployeeId, setEditingEmployeeId] = useState<number | null>(null);
+  const [editingDepartmentId, setEditingDepartmentId] = useState<number | null>(null);
   const [form, setForm] = useState({
     employee_code: "",
     first_name: "",
@@ -27,6 +31,20 @@ export default function EmployeesPage() {
     designation_id: "",
     status: "active",
   });
+  const [editForm, setEditForm] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    date_of_birth: "",
+    department_id: "",
+    designation_id: "",
+    status: "active",
+    address: "",
+    emergency_contact: "",
+  });
+  const [newDept, setNewDept] = useState({ name: "", code: "", description: "" });
+  const [editDept, setEditDept] = useState({ name: "", code: "", description: "" });
   const isAdmin = user?.role === "admin";
 
   const loadEmployees = () => {
@@ -88,6 +106,120 @@ export default function EmployeesPage() {
     }
   };
 
+  const startEdit = (emp: Employee) => {
+    setEditingEmployeeId(emp.id);
+    setShowEdit(true);
+    setEditForm({
+      first_name: emp.first_name || "",
+      last_name: emp.last_name || "",
+      email: emp.email || "",
+      phone: emp.phone || "",
+      date_of_birth: emp.date_of_birth ? emp.date_of_birth.slice(0, 10) : "",
+      department_id: String(emp.department_id || ""),
+      designation_id: String(emp.designation_id || ""),
+      status: emp.status || "active",
+      address: emp.address || "",
+      emergency_contact: emp.emergency_contact || "",
+    });
+  };
+
+  const cancelEdit = () => {
+    setShowEdit(false);
+    setEditingEmployeeId(null);
+    setEditForm({
+      first_name: "",
+      last_name: "",
+      email: "",
+      phone: "",
+      date_of_birth: "",
+      department_id: "",
+      designation_id: "",
+      status: "active",
+      address: "",
+      emergency_contact: "",
+    });
+  };
+
+  const saveEdit = async () => {
+    if (!editingEmployeeId) return;
+    if (!editForm.first_name || !editForm.last_name || !editForm.email || !editForm.department_id || !editForm.designation_id) {
+      alert("Please fill all required fields.");
+      return;
+    }
+    try {
+      await api.employees.update(editingEmployeeId, {
+        first_name: editForm.first_name,
+        last_name: editForm.last_name,
+        email: editForm.email,
+        phone: editForm.phone || undefined,
+        date_of_birth: editForm.date_of_birth || undefined,
+        department_id: Number(editForm.department_id),
+        designation_id: Number(editForm.designation_id),
+        status: editForm.status,
+        address: editForm.address || undefined,
+        emergency_contact: editForm.emergency_contact || undefined,
+      });
+      cancelEdit();
+      loadEmployees();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to update employee");
+    }
+  };
+
+  const startDepartmentEdit = (dept: Department) => {
+    setEditingDepartmentId(dept.id);
+    setEditDept({
+      name: dept.name || "",
+      code: dept.code || "",
+      description: dept.description || "",
+    });
+  };
+
+  const cancelDepartmentEdit = () => {
+    setEditingDepartmentId(null);
+    setEditDept({ name: "", code: "", description: "" });
+  };
+
+  const createDepartment = async () => {
+    if (!newDept.name.trim()) {
+      alert("Department name is required.");
+      return;
+    }
+    try {
+      await api.employees.createDepartment({
+        name: newDept.name.trim(),
+        code: newDept.code.trim() || undefined,
+        description: newDept.description.trim() || undefined,
+      });
+      setNewDept({ name: "", code: "", description: "" });
+      const rows = await api.employees.departments();
+      setDepartments(rows);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to create department");
+    }
+  };
+
+  const saveDepartmentEdit = async () => {
+    if (!editingDepartmentId) return;
+    if (!editDept.name.trim()) {
+      alert("Department name is required.");
+      return;
+    }
+    try {
+      await api.employees.updateDepartment(editingDepartmentId, {
+        name: editDept.name.trim(),
+        code: editDept.code.trim() || undefined,
+        description: editDept.description.trim() || undefined,
+      });
+      cancelDepartmentEdit();
+      const rows = await api.employees.departments();
+      setDepartments(rows);
+      loadEmployees();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to update department");
+    }
+  };
+
   const removeEmployee = async (id: number) => {
     if (!confirm("Remove this employee? This will set status to inactive.")) return;
     try {
@@ -120,10 +252,16 @@ export default function EmployeesPage() {
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-slate-800">Admin Actions</h3>
-              <Button variant="outline" onClick={() => setShowAdd((v) => !v)}>
-                <Plus className="mr-2 h-4 w-4" />
-                {showAdd ? "Cancel" : "Add Employee"}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={() => setShowAdd((v) => !v)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  {showAdd ? "Cancel" : "Add Employee"}
+                </Button>
+                <Button variant="outline" onClick={() => setShowDeptManager((v) => !v)}>
+                  <Building2 className="mr-2 h-4 w-4" />
+                  {showDeptManager ? "Hide Departments" : "Manage Departments"}
+                </Button>
+              </div>
             </div>
             {showAdd && (
               <div className="mt-4 grid gap-3 md:grid-cols-3">
@@ -142,6 +280,127 @@ export default function EmployeesPage() {
                 </select>
                 <div className="md:col-span-3">
                   <Button onClick={addEmployee} className="bg-blue-600 text-white hover:bg-blue-700">Save Employee</Button>
+                </div>
+              </div>
+            )}
+            {showEdit && editingEmployeeId && (
+              <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50/40 p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <h4 className="font-semibold text-slate-800">Edit Employee Details</h4>
+                  <Button variant="ghost" size="sm" onClick={cancelEdit}>
+                    <X className="mr-1 h-4 w-4" />
+                    Cancel
+                  </Button>
+                </div>
+                <div className="grid gap-3 md:grid-cols-3">
+                  <Input placeholder="First Name*" value={editForm.first_name} onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })} />
+                  <Input placeholder="Last Name*" value={editForm.last_name} onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })} />
+                  <Input placeholder="Email*" type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
+                  <Input placeholder="Phone" value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
+                  <Input placeholder="Date of Birth" type="date" value={editForm.date_of_birth} onChange={(e) => setEditForm({ ...editForm, date_of_birth: e.target.value })} />
+                  <select className="h-10 rounded-md border border-slate-200 px-3 text-sm" value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="resigned">Resigned</option>
+                  </select>
+                  <select className="h-10 rounded-md border border-slate-200 px-3 text-sm" value={editForm.department_id} onChange={(e) => setEditForm({ ...editForm, department_id: e.target.value })}>
+                    <option value="">Department*</option>
+                    {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  </select>
+                  <select className="h-10 rounded-md border border-slate-200 px-3 text-sm" value={editForm.designation_id} onChange={(e) => setEditForm({ ...editForm, designation_id: e.target.value })}>
+                    <option value="">Designation*</option>
+                    {designations.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  </select>
+                  <Input placeholder="Emergency Contact" value={editForm.emergency_contact} onChange={(e) => setEditForm({ ...editForm, emergency_contact: e.target.value })} />
+                  <div className="md:col-span-3">
+                    <Input placeholder="Address" value={editForm.address} onChange={(e) => setEditForm({ ...editForm, address: e.target.value })} />
+                  </div>
+                  <div className="md:col-span-3">
+                    <Button onClick={saveEdit} className="bg-blue-600 text-white hover:bg-blue-700">
+                      <Save className="mr-2 h-4 w-4" />
+                      Update Employee
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {showDeptManager && (
+              <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/40 p-4">
+                <h4 className="mb-3 font-semibold text-slate-800">Department Manager</h4>
+                <div className="mb-4 grid gap-3 md:grid-cols-3">
+                  <Input
+                    placeholder="Department Name*"
+                    value={newDept.name}
+                    onChange={(e) => setNewDept({ ...newDept, name: e.target.value })}
+                  />
+                  <Input
+                    placeholder="Code (optional)"
+                    value={newDept.code}
+                    onChange={(e) => setNewDept({ ...newDept, code: e.target.value })}
+                  />
+                  <Input
+                    placeholder="Description (optional)"
+                    value={newDept.description}
+                    onChange={(e) => setNewDept({ ...newDept, description: e.target.value })}
+                  />
+                  <div className="md:col-span-3">
+                    <Button onClick={createDepartment} className="bg-indigo-600 text-white hover:bg-indigo-700">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Department
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto rounded-lg border border-slate-100 bg-white">
+                  <table className="w-full min-w-[640px]">
+                    <thead className="bg-slate-50">
+                      <tr>
+                        <th className="p-3 text-left text-xs font-semibold uppercase text-slate-500">Name</th>
+                        <th className="p-3 text-left text-xs font-semibold uppercase text-slate-500">Code</th>
+                        <th className="p-3 text-left text-xs font-semibold uppercase text-slate-500">Description</th>
+                        <th className="p-3 text-left text-xs font-semibold uppercase text-slate-500">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {departments.map((dept) =>
+                        editingDepartmentId === dept.id ? (
+                          <tr key={dept.id} className="border-t border-slate-100 bg-indigo-50/60">
+                            <td className="p-3">
+                              <Input value={editDept.name} onChange={(e) => setEditDept({ ...editDept, name: e.target.value })} />
+                            </td>
+                            <td className="p-3">
+                              <Input value={editDept.code} onChange={(e) => setEditDept({ ...editDept, code: e.target.value })} />
+                            </td>
+                            <td className="p-3">
+                              <Input value={editDept.description} onChange={(e) => setEditDept({ ...editDept, description: e.target.value })} />
+                            </td>
+                            <td className="p-3">
+                              <Button size="sm" onClick={saveDepartmentEdit} className="mr-2 bg-indigo-600 text-white hover:bg-indigo-700">
+                                <Save className="mr-1 h-4 w-4" />
+                                Save
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={cancelDepartmentEdit}>
+                                <X className="mr-1 h-4 w-4" />
+                                Cancel
+                              </Button>
+                            </td>
+                          </tr>
+                        ) : (
+                          <tr key={dept.id} className="border-t border-slate-100">
+                            <td className="p-3 text-sm font-medium text-slate-800">{dept.name}</td>
+                            <td className="p-3 text-sm text-slate-600">{dept.code || "—"}</td>
+                            <td className="p-3 text-sm text-slate-600">{dept.description || "—"}</td>
+                            <td className="p-3">
+                              <Button size="sm" variant="outline" onClick={() => startDepartmentEdit(dept)} className="border-indigo-200 text-indigo-700 hover:bg-indigo-50">
+                                <Pencil className="mr-1 h-4 w-4" />
+                                Edit
+                              </Button>
+                            </td>
+                          </tr>
+                        )
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
@@ -187,6 +446,15 @@ export default function EmployeesPage() {
                     <td className="p-4 text-slate-600">{formatDisplayDate(e.date_of_joining)}</td>
                     {isAdmin && (
                       <td className="p-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mr-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                          onClick={() => startEdit(e)}
+                        >
+                          <Pencil className="mr-1 h-4 w-4" />
+                          Edit
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"

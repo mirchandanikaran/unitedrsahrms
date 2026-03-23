@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HRMS Setup Guide</title>
+  <link rel="stylesheet" href="./guide.css" />
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <h1>Employee Management System - Setup Guide</h1>
+      <p>Quick setup for local development, backend + frontend, and basic verification.</p>
+      <span class="pill">HTML Guide</span>
+    </section>
+
+    <section class="card">
+      <h2>1) Prerequisites</h2>
+      <ul>
+        <li>Python 3.11+</li>
+        <li>Node.js 20+</li>
+        <li>PostgreSQL (recommended), or SQLite for local dev</li>
+      </ul>
+      <div class="callout success">For local development, SQLite works well and avoids PostgreSQL setup.</div>
+    </section>
+
+    <section class="card">
+      <h2>2) Clone and open project</h2>
+      <pre><code>git clone &lt;your-repo-url&gt;
+cd HRMS</code></pre>
+    </section>
+
+    <section class="card">
+      <h2>3) Backend setup</h2>
+      <ol>
+        <li>Create virtual environment and install dependencies.</li>
+        <li>Configure <code>backend/.env</code>.</li>
+        <li>Seed sample data.</li>
+        <li>Run FastAPI server.</li>
+      </ol>
+      <pre><code>cd backend
+python -m venv venv
+
+# Linux/macOS
+source venv/bin/activate
+# Windows (PowerShell)
+# .\venv\Scripts\Activate.ps1
+
+pip install -r requirements.txt
+
+# Copy env file and edit values if needed
+cp .env.example .env
+
+# Seed demo data
+python scripts/seed_data.py
+
+# Run backend API
+uvicorn app.main:app --reload --port 8000</code></pre>
+      <div class="callout warn">
+        If login returns HTTP 500 due to bcrypt/passlib mismatch, reinstall backend deps from
+        <code>requirements.txt</code> so pinned versions apply.
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>4) Frontend setup</h2>
+      <pre><code>cd frontend
+npm install
+npm run dev</code></pre>
+      <p>Open: <code>http://localhost:3000</code></p>
+    </section>
+
+    <section class="card">
+      <h2>5) Demo credentials</h2>
+      <table>
+        <thead>
+          <tr><th>Role</th><th>Email</th><th>Password</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Admin</td><td>admin@hrms.com</td><td>password123</td></tr>
+          <tr><td>HR</td><td>hr@hrms.com</td><td>password123</td></tr>
+          <tr><td>Manager</td><td>manager@hrms.com</td><td>password123</td></tr>
+          <tr><td>Employee</td><td>employee@hrms.com</td><td>password123</td></tr>
+          <tr><td>Leadership</td><td>leadership@hrms.com</td><td>password123</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>6) Verify setup</h2>
+      <div class="grid">
+        <div>
+          <h3>Backend</h3>
+          <ul>
+            <li>Health: <code>http://localhost:8000/health</code></li>
+            <li>Swagger: <code>http://localhost:8000/docs</code></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Frontend</h3>
+          <ul>
+            <li>App: <code>http://localhost:3000</code></li>
+            <li>Login should succeed with demo credentials</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>7) Run tests (optional but recommended)</h2>
+      <h3>Backend tests</h3>
+      <pre><code>cd backend
+python -m pytest tests/ -v</code></pre>
+      <h3>Frontend tests + typecheck</h3>
+      <pre><code>cd frontend
+npm run test:run
+npx tsc --noEmit</code></pre>
+    </section>
+
+    <p class="footer">
+      Document generated from project README. Keep this guide updated when setup steps change.
+    </p>
+  </main>
+</body>
+</html>

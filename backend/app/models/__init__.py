@@ -9,6 +9,8 @@ from app.models.notification import Notification
 from app.models.audit import AuditLog
 from app.models.onboarding import OnboardingTemplate, OnboardingItem
 from app.models.profile_request import ProfileUpdateRequest
+from app.models.award import AwardBadge
+from app.models.social import SocialPost, SocialComment, SocialReaction
 
 __all__ = [
     "User",
@@ -30,4 +32,8 @@ __all__ = [
     "OnboardingTemplate",
     "OnboardingItem",
     "ProfileUpdateRequest",
+    "AwardBadge",
+    "SocialPost",
+    "SocialComment",
+    "SocialReaction",
 ]

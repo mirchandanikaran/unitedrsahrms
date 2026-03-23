@@ -16,6 +16,8 @@ import {
   UserCircle,
   BarChart3,
   GitBranch,
+  Award,
+  MessageSquare,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 
@@ -32,6 +34,8 @@ const navItems: { href: string; label: string; icon: React.ComponentType<{ class
   },
   { href: "/onboarding", label: "Onboarding", icon: ClipboardList, roles: ["admin", "hr", "employee"] },
   { href: "/profile", label: "My Profile", icon: UserCircle, roles: ["admin", "hr", "manager", "employee"] },
+  { href: "/awards", label: "Awards", icon: Award, roles: ["admin", "hr", "manager", "employee", "leadership"] },
+  { href: "/social", label: "Social Wall", icon: MessageSquare, roles: ["admin", "hr", "manager", "employee", "leadership"] },
   { href: "/reporting", label: "Reporting", icon: GitBranch, roles: ["admin", "hr", "manager", "employee", "leadership"] },
   { href: "/analytics", label: "Analytics", icon: BarChart3, roles: ["admin", "hr", "leadership"] },
   { href: "/reports", label: "Reports", icon: FileText, roles: ["admin", "hr"] },

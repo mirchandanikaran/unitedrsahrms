@@ -15,16 +15,19 @@ function padMonthKey(iso: string) {
   return iso.slice(0, 10);
 }
 
-function cellStyle(day: CalendarDay | undefined): string {
-  if (!day) return "bg-white/80";
-  const mand = day.mandatory_holidays.length > 0;
-  const opt = day.optional_holidays.length > 0;
-  const leaves = day.approved_leaves.length > 0;
-  const selfLeave = day.approved_leaves.some((l) => l.is_self);
-  if (mand) return "bg-amber-100/90 border-amber-300 ring-1 ring-amber-200";
-  if (opt) return "bg-sky-50/90 border-sky-200 ring-1 ring-sky-100";
-  if (leaves) return selfLeave ? "bg-emerald-50 ring-2 ring-blue-500 border-emerald-200" : "bg-emerald-50/80 border-emerald-200";
-  return "bg-white/80 border-slate-100";
+function isSunday(year: number, month: number, dayOfMonth: number): boolean {
+  return new Date(year, month - 1, dayOfMonth).getDay() === 0;
+}
+
+function isInactiveDay(day: CalendarDay | undefined, isSundayOff: boolean): boolean {
+  if (isSundayOff) return true;
+  if (!day) return false;
+  return day.mandatory_holidays.length > 0 || day.optional_holidays.length > 0 || day.approved_leaves.length > 0;
+}
+
+function cellStyle(inactive: boolean): string {
+  if (inactive) return "bg-slate-100 border-slate-300 text-slate-500";
+  return "bg-blue-50/70 border-blue-200 text-slate-800";
 }
 
 export default function LeaveCalendarPage() {
@@ -87,6 +90,30 @@ export default function LeaveCalendarPage() {
     while (out.length % 7 !== 0) out.push(null);
     return out;
   }, [y, m]);
+
+  const upcomingInactiveDays = useMemo(() => {
+    if (!cal) return [];
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return cal.days
+      .map((d) => {
+        const [yy, mm, dd] = d.date.slice(0, 10).split("-").map(Number);
+        const dateObj = new Date(yy, mm - 1, dd);
+        const sundayOff = isSunday(yy, mm, dd);
+        const inactive = isInactiveDay(d, sundayOff);
+        if (!inactive || dateObj < today) return null;
+        const reasons: string[] = [];
+        if (sundayOff) reasons.push("Sunday weekly off");
+        if (d.mandatory_holidays.length > 0) reasons.push(...d.mandatory_holidays.map((h) => `Holiday: ${h.name}`));
+        if (d.optional_holidays.length > 0) reasons.push(...d.optional_holidays.map((h) => `Optional holiday: ${h.name}`));
+        if (d.approved_leaves.length > 0) {
+          reasons.push(...d.approved_leaves.map((l) => `Leave: ${l.employee_name} (${l.leave_type_name})`));
+        }
+        return { date: d.date, reasons };
+      })
+      .filter((row): row is { date: string; reasons: string[] } => row !== null)
+      .slice(0, 12);
+  }, [cal]);
 
   const prevMonth = () => {
     if (m <= 1) {
@@ -191,22 +218,16 @@ export default function LeaveCalendarPage() {
       </div>
 
       <p className="text-sm text-slate-600">
-        Month view for <strong>India (IN)</strong> public / company holidays and <strong>approved</strong> employee leaves.
-        Pending applications are not shown; the calendar updates when a manager or admin approves a leave.
+        Monday to Saturday are marked <strong>active</strong> by default. Sundays (weekly off), holidays, and approved leave
+        days are marked <strong>inactive</strong> in grey.
       </p>
 
       <div className="flex flex-wrap gap-4 text-xs text-slate-600">
         <span className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded bg-amber-200 ring-1 ring-amber-300" /> Mandatory holiday
+          <span className="h-3 w-3 rounded bg-blue-200 ring-1 ring-blue-300" /> Active working day
         </span>
         <span className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded bg-sky-100 ring-1 ring-sky-200" /> Optional holiday
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded bg-emerald-100 ring-1 ring-emerald-200" /> Approved leave
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded bg-emerald-100 ring-2 ring-blue-500" /> Your approved leave
+          <span className="h-3 w-3 rounded bg-slate-300 ring-1 ring-slate-400" /> Inactive day (Sunday / holiday / leave)
         </span>
       </div>
 
@@ -215,6 +236,27 @@ export default function LeaveCalendarPage() {
           <CardContent className="py-3 text-sm text-red-800">{err}</CardContent>
         </Card>
       )}
+
+      <Card className="border-0 shadow-lg shadow-slate-200/50">
+        <CardContent className="pt-6">
+          <h2 className="text-base font-semibold text-slate-800">Upcoming inactive days</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Employees can use this list to plan upcoming time off and holidays.
+          </p>
+          {upcomingInactiveDays.length === 0 ? (
+            <p className="mt-3 text-sm text-slate-500">No upcoming inactive days in this month.</p>
+          ) : (
+            <div className="mt-3 space-y-2">
+              {upcomingInactiveDays.map((row) => (
+                <div key={row.date} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                  <p className="text-sm font-semibold text-slate-700">{formatDisplayDate(row.date)}</p>
+                  <p className="text-xs text-slate-600">{row.reasons.join(" · ")}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card className="border-0 shadow-lg shadow-slate-200/50">
         <CardContent className="p-4 pt-6">
@@ -232,28 +274,40 @@ export default function LeaveCalendarPage() {
               }
               const key = `${y}-${String(m).padStart(2, "0")}-${String(dom).padStart(2, "0")}`;
               const day = dayMap.get(key);
+              const sundayOff = isSunday(y, m, dom);
+              const inactive = isInactiveDay(day, sundayOff);
               return (
                 <div
                   key={key}
-                  className={`flex min-h-[100px] flex-col rounded-lg border p-1.5 text-left text-xs transition-shadow ${cellStyle(day)}`}
+                  className={`flex min-h-[100px] flex-col rounded-lg border p-1.5 text-left text-xs transition-shadow ${cellStyle(inactive)}`}
                 >
-                  <span className="mb-1 font-bold text-slate-800">{dom}</span>
+                  <div className="mb-1 flex items-center justify-between gap-1">
+                    <span className={`font-bold ${inactive ? "text-slate-500" : "text-slate-800"}`}>{dom}</span>
+                    <span className={`rounded px-1.5 py-0.5 text-[10px] ${inactive ? "bg-slate-300 text-slate-700" : "bg-blue-200 text-blue-700"}`}>
+                      {inactive ? "Inactive" : "Active"}
+                    </span>
+                  </div>
                   {day && (
                     <div className="flex flex-1 flex-col gap-0.5 overflow-hidden">
+                      {sundayOff && (
+                        <p className="truncate text-slate-600" title="Sunday weekly off">
+                          Sunday weekly off
+                        </p>
+                      )}
                       {day.mandatory_holidays.map((h) => (
-                        <p key={h.id} className="truncate font-medium text-amber-900" title={h.name}>
+                        <p key={h.id} className="truncate font-medium text-slate-700" title={h.name}>
                           {h.name}
                         </p>
                       ))}
                       {day.optional_holidays.map((h) => (
-                        <p key={h.id} className="truncate text-sky-800" title={h.name}>
+                        <p key={h.id} className="truncate text-slate-600" title={h.name}>
                           {h.name}
                         </p>
                       ))}
                       {day.approved_leaves.map((l) => (
                         <p
                           key={l.leave_id}
-                          className={`truncate ${l.is_self ? "font-semibold text-blue-800" : "text-emerald-900"}`}
+                          className={`truncate ${l.is_self ? "font-semibold text-slate-700" : "text-slate-600"}`}
                           title={`${l.employee_name} — ${l.leave_type_name}`}
                         >
                           {l.employee_name.split(" ")[0]} · {l.leave_type_name}
@@ -272,7 +326,7 @@ export default function LeaveCalendarPage() {
         <Card className="border-0 shadow-lg shadow-indigo-100/80 ring-1 ring-indigo-100">
           <CardContent className="space-y-4 pt-6">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <h2 className="text-lg font-bold text-slate-800">Admin: mandatory &amp; optional holiday calendar</h2>
+              <h2 className="text-lg font-bold text-slate-800">Admin Event Manager: holiday calendar</h2>
               <div className="flex items-center gap-2">
                 <label className="text-sm text-slate-600">Year</label>
                 <Input
@@ -284,8 +338,9 @@ export default function LeaveCalendarPage() {
               </div>
             </div>
             <p className="text-sm text-slate-600">
-              Update the organization holiday list once per year (India <code className="rounded bg-slate-100 px-1">IN</code>{" "}
-              region). Changes apply immediately for all users.
+              Add, edit, or remove holiday events for India (
+              <code className="rounded bg-slate-100 px-1">IN</code> region). Employee calendars and upcoming inactive days
+              refresh immediately.
             </p>
 
             <div className="flex flex-wrap items-end gap-3 rounded-xl border border-slate-100 bg-slate-50/80 p-4">

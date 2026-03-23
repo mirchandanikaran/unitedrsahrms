@@ -50,6 +50,10 @@ export const api = {
     remove: (id: number) =>
       request<{ message: string; employee_id: number }>(`/employees/${id}`, { method: "DELETE" }),
     departments: () => request<Department[]>("/employees/departments"),
+    createDepartment: (data: { name: string; code?: string; description?: string }) =>
+      request<Department>("/employees/departments", { method: "POST", body: JSON.stringify(data) }),
+    updateDepartment: (id: number, data: { name?: string; code?: string; description?: string }) =>
+      request<Department>(`/employees/departments/${id}`, { method: "PUT", body: JSON.stringify(data) }),
     designations: () => request<Designation[]>("/employees/designations"),
     reportingStructure: () => request<ReportingStructure>("/employees/reporting-structure"),
   },
@@ -144,6 +148,33 @@ export const api = {
     executive: (params?: Record<string, string>) =>
       request<ExecutiveAnalytics>("/analytics/executive", { params }),
   },
+  social: {
+    listPosts: (params?: Record<string, string>) =>
+      request<Paginated<SocialPost>>("/social/posts", { params }),
+    createPost: (data: { content: string }) =>
+      request<SocialPost>("/social/posts", { method: "POST", body: JSON.stringify(data) }),
+    deletePost: (id: number) =>
+      request<{ message: string; id: number }>(`/social/posts/${id}`, { method: "DELETE" }),
+    toggleLike: (postId: number) =>
+      request<{ liked: boolean; like_count: number }>(`/social/posts/${postId}/like`, { method: "POST" }),
+    addComment: (postId: number, data: { content: string }) =>
+      request<SocialComment>(`/social/posts/${postId}/comments`, { method: "POST", body: JSON.stringify(data) }),
+    deleteComment: (id: number) =>
+      request<{ message: string; id: number }>(`/social/comments/${id}`, { method: "DELETE" }),
+  },
+  awards: {
+    list: (params?: Record<string, string>) =>
+      request<AwardBadge[]>("/awards", { params }),
+    create: (data: {
+      employee_id: number;
+      title: string;
+      badge_type?: string;
+      description?: string;
+      awarded_on?: string;
+    }) => request<AwardBadge>("/awards", { method: "POST", body: JSON.stringify(data) }),
+    remove: (id: number) =>
+      request<{ message: string; id: number }>(`/awards/${id}`, { method: "DELETE" }),
+  },
 };
 
 // Types
@@ -175,6 +206,7 @@ export interface Department {
   id: number;
   name: string;
   code?: string;
+  description?: string;
 }
 export interface Designation {
   id: number;
@@ -365,4 +397,38 @@ export interface ExecutiveAnalytics {
   leave_liability: { total_liability_days: number; by_type: { type: string; total_entitled: number; total_used: number; remaining_liability: number }[] };
   attendance_trends: { date: string; present: number; absent: number }[];
   pending_leaves: number;
+}
+export interface AwardBadge {
+  id: number;
+  employee_id: number;
+  employee_name: string;
+  title: string;
+  badge_type: string;
+  description?: string;
+  awarded_on: string;
+  awarded_by_id?: number;
+  awarded_by_name?: string;
+  created_at: string;
+}
+export interface SocialComment {
+  id: number;
+  post_id: number;
+  employee_id: number;
+  employee_name: string;
+  content: string;
+  created_at: string;
+  can_delete: boolean;
+}
+export interface SocialPost {
+  id: number;
+  employee_id: number;
+  employee_name: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  like_count: number;
+  comment_count: number;
+  is_liked_by_me: boolean;
+  can_delete: boolean;
+  comments: SocialComment[];
 }
