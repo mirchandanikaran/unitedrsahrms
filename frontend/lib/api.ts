@@ -1,5 +1,36 @@
 const API_BASE = "/api/v1";
 
+function extractErrorMessage(payload: unknown, fallback: string): string {
+  if (!payload || typeof payload !== "object") return fallback;
+
+  const err = payload as { detail?: unknown; message?: unknown };
+  if (typeof err.message === "string" && err.message.trim()) return err.message;
+  if (typeof err.detail === "string" && err.detail.trim()) return err.detail;
+
+  if (Array.isArray(err.detail) && err.detail.length > 0) {
+    const first = err.detail[0];
+    if (typeof first === "string" && first.trim()) return first;
+    if (first && typeof first === "object") {
+      const firstObj = first as { msg?: unknown; loc?: unknown };
+      if (typeof firstObj.msg === "string" && firstObj.msg.trim()) {
+        const loc =
+          Array.isArray(firstObj.loc) && firstObj.loc.length
+            ? `${firstObj.loc.join(".")}: `
+            : "";
+        return `${loc}${firstObj.msg}`;
+      }
+    }
+  }
+
+  if (err.detail && typeof err.detail === "object") {
+    const detailObj = err.detail as { message?: unknown; error?: unknown };
+    if (typeof detailObj.message === "string" && detailObj.message.trim()) return detailObj.message;
+    if (typeof detailObj.error === "string" && detailObj.error.trim()) return detailObj.error;
+  }
+
+  return fallback;
+}
+
 async function request<T>(
   path: string,
   options: RequestInit & { params?: Record<string, string> } = {}
@@ -19,31 +50,24 @@ async function request<T>(
 
   const res = await fetch(url, { ...rest, headers });
   if (res.status === 401) {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.location.href = "/login";
-    throw new Error("Unauthorized");
+    const err = await res.json().catch(() => ({}));
+    const message = extractErrorMessage(err, "Unauthorized");
+    // Keep users on login page for bad credentials instead of forced reload.
+    if (path !== "/auth/login") {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+    }
+    throw new Error(message);
   }
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || err.message || `HTTP ${res.status}`);
+    throw new Error(extractErrorMessage(err, `HTTP ${res.status}`));
   }
   return res.json();
 }
 
 export const api = {
-  setup: {
-    status: () => request<SetupStatus>("/setup/status"),
-    initialize: (data: {
-      admin_first_name: string;
-      admin_last_name: string;
-      admin_email: string;
-      admin_password: string;
-      department_name?: string;
-      department_code?: string;
-      designation_name?: string;
-    }) => request<{ message: string; admin_email: string }>("/setup/initialize", { method: "POST", body: JSON.stringify(data) }),
-  },
   auth: {
     login: (email: string, password: string) =>
       request<{ access_token: string; user: User }>("/auth/login", {
@@ -421,11 +445,6 @@ export interface AwardBadge {
   awarded_by_id?: number;
   awarded_by_name?: string;
   created_at: string;
-}
-export interface SetupStatus {
-  initialized: boolean;
-  user_count: number;
-  employee_count: number;
 }
 export interface SocialComment {
   id: number;

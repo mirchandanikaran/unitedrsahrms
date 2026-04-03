@@ -1,0 +1,23 @@
+[Unit]
+Description=HRMS full stack (backend + frontend)
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/hrms
+EnvironmentFile=-/opt/hrms/backend/.env
+EnvironmentFile=-/opt/hrms/deployment/service.env
+Environment=BACKEND_HOST=127.0.0.1
+Environment=BACKEND_PORT=8000
+Environment=FRONTEND_HOST=0.0.0.0
+Environment=FRONTEND_PORT=8787
+Environment=PATH=/opt/hrms/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/bin/bash /opt/hrms/deployment/run-hrms.sh
+Restart=always
+RestartSec=5
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 
 export default function HomePage() {
@@ -11,32 +10,13 @@ export default function HomePage() {
   const [message, setMessage] = useState("Loading...");
 
   useEffect(() => {
-    let mounted = true;
-    const run = async () => {
-      try {
-        const status = await api.setup.status();
-        if (!mounted) return;
-        if (isAuthenticated()) {
-          router.replace("/dashboard");
-          return;
-        }
-        if (!status.initialized) {
-          setMessage("Redirecting to first-time setup...");
-          router.replace("/setup");
-          return;
-        }
-        setMessage("Redirecting to login...");
-        router.replace("/login");
-      } catch {
-        if (!mounted) return;
-        setMessage("Redirecting...");
-        router.replace("/login");
-      }
-    };
-    run();
-    return () => {
-      mounted = false;
-    };
+    if (isAuthenticated()) {
+      setMessage("Redirecting to dashboard...");
+      router.replace("/dashboard");
+      return;
+    }
+    setMessage("Redirecting to login...");
+    router.replace("/login");
   }, [isAuthenticated, router]);
 
   return (

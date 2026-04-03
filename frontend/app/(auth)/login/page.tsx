@@ -1,41 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Lock, LogIn, Rocket } from "lucide-react";
+import { Mail, Lock, LogIn } from "lucide-react";
 import { PORTAL_NAME, PORTAL_TAGLINE } from "@/lib/brand";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [setupReady, setSetupReady] = useState(true);
-  const [checkingSetup, setCheckingSetup] = useState(true);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
-
-  useEffect(() => {
-    let mounted = true;
-    api.setup
-      .status()
-      .then((s) => {
-        if (!mounted) return;
-        setSetupReady(s.initialized);
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (mounted) setCheckingSetup(false);
-      });
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,16 +53,6 @@ export default function LoginPage() {
         </CardHeader>
 
         <CardContent className="space-y-5">
-          {!checkingSetup && !setupReady && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-              <p className="mb-2 font-semibold">First-time setup required</p>
-              <p className="mb-3">No admin account exists yet. Complete onboarding before login.</p>
-              <Button type="button" variant="outline" onClick={() => router.push("/setup")} className="border-amber-300 bg-white text-amber-900 hover:bg-amber-100">
-                <Rocket className="mr-2 h-4 w-4" />
-                Open setup
-              </Button>
-            </div>
-          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700">
@@ -115,7 +86,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700"
-              disabled={loading || checkingSetup || !setupReady}
+              disabled={loading}
             >
               <LogIn className="mr-2 h-4 w-4" /> {loading ? "Signing in..." : "Sign in"}
             </Button>
