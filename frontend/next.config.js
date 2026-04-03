@@ -5,7 +5,7 @@ const nextConfig = {
   async rewrites() {
     const backend =
       process.env.NEXT_PUBLIC_API_URL ||
-      (process.env.NODE_ENV === "production" ? "http://backend:8000" : "http://localhost:8000");
+      "http://127.0.0.1:8000";
     return [
       { source: "/api/v1/:path*", destination: `${backend}/api/v1/:path*` },
     ];
