@@ -71,19 +71,13 @@ npm run dev</code></pre>
     </section>
 
     <section class="card">
-      <h2>5) Demo credentials</h2>
-      <table>
-        <thead>
-          <tr><th>Role</th><th>Email</th><th>Password</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Admin</td><td>admin@hrms.com</td><td>password123</td></tr>
-          <tr><td>HR</td><td>hr@hrms.com</td><td>password123</td></tr>
-          <tr><td>Manager</td><td>manager@hrms.com</td><td>password123</td></tr>
-          <tr><td>Employee</td><td>employee@hrms.com</td><td>password123</td></tr>
-          <tr><td>Leadership</td><td>leadership@hrms.com</td><td>password123</td></tr>
-        </tbody>
-      </table>
+      <h2>5) First-time onboarding (empty database)</h2>
+      <ul>
+        <li>Open <code>http://localhost:3000</code> after backend/frontend are running.</li>
+        <li>You will be redirected to <code>/setup</code>.</li>
+        <li>Create your first admin account and complete initialization.</li>
+        <li>Then log in with the credentials you just created.</li>
+      </ul>
     </section>
 
     <section class="card">
@@ -115,6 +109,15 @@ python -m pytest tests/ -v</code></pre>
       <pre><code>cd frontend
 npm run test:run
 npx tsc --noEmit</code></pre>
+    </section>
+
+    <section class="card">
+      <h2>8) Docker deployment (office server)</h2>
+      <pre><code>cp deployment/docker.env.example deployment/docker.env
+# edit docker.env (passwords/secrets/origins)
+docker compose up -d --build</code></pre>
+      <p>On a fresh database, the app will open the first-time onboarding flow at <code>/setup</code>.</p>
+      <p class="muted">See <code>DEPLOY_DOCKER.md</code> for full server operations.</p>
     </section>
 
     <p class="footer">

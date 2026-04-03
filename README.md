@@ -76,12 +76,8 @@ pip install -r requirements.txt
 # Copy and edit .env
 cp .env.example .env
 
-# Seed sample data (creates users, employees, leave types, holidays, onboarding templates, sample leaves)
+# Initialize master data only (no demo users/employees)
 python scripts/seed_data.py
-
-# Fresh seed includes 5 demo users + 100 random employees (105 rows; random ones have no login).
-# To add more random rows on an existing DB:
-# python scripts/generate_random_employees.py --count 25
 
 # Run API
 uvicorn app.main:app --reload --port 8000
@@ -97,17 +93,13 @@ npm run dev
 
 Open **http://localhost:3000**
 
-**Demo logins** (from seed script):
+On first run with an empty database, you will be redirected to **`/setup`** for one-time onboarding:
 
-| Role       | Email               | Password    |
-|------------|---------------------|-------------|
-| Admin      | admin@hrms.com      | password123 |
-| HR         | hr@hrms.com         | password123 |
-| Manager    | manager@hrms.com    | password123 |
-| Employee   | employee@hrms.com   | password123 |
-| Leadership | leadership@hrms.com | password123 |
+- Create your first **Admin** account
+- Create initial department/designation
+- Initialize core master data
 
-> **Note:** If you re-seed on an existing DB, remove or reset the database first to avoid unique-constraint errors.
+After setup, log in with the admin credentials you created.
 
 ### Frontend dev tips (Windows)
 
@@ -202,19 +194,19 @@ sudo systemctl reload nginx
 
 ---
 
-## Docker (Optional)
+## Docker (Recommended for server deployment)
+
+Use the provided all-in-one stack (`docker-compose.yml`) with Postgres + backend + frontend + nginx:
 
 ```bash
-# Backend
-cd backend
-docker build -t hrms-backend .
-docker run -p 8000:8000 --env-file .env hrms-backend
-
-# Frontend (build with NEXT_PUBLIC_API_URL for production)
-cd frontend
-docker build -t hrms-frontend .
-docker run -p 3000:3000 -e NEXT_PUBLIC_API_URL=http://backend:8000 hrms-frontend
+cp deployment/docker.env.example deployment/docker.env
+# Edit deployment/docker.env (passwords/secrets/origins)
+docker compose up -d --build
 ```
+
+For first-time empty DB deployments, open the app and complete one-time onboarding at `/setup`.
+
+Detailed guide: see **[`DEPLOY_DOCKER.md`](DEPLOY_DOCKER.md)**.
 
 ---
 

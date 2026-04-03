@@ -10,6 +10,12 @@ This guide is for **people using the Employee Management System web portal** (em
 
 - In your browser, go to the URL your organization gives you (for local development this is often **http://localhost:3000**).
 
+### 1.1.a First-time onboarding (fresh installation)
+
+- On a brand-new deployment with an empty database, the app shows a **Welcome / Setup** screen at **`/setup`**.
+- Create your first **Admin** account and complete the one-time initialization.
+- After setup completes, continue to the login page and sign in.
+
 ### 1.2 Sign in
 
 1. Enter your **work email** and **password**.
@@ -245,30 +251,14 @@ Inside **Employees** → **Admin Actions**:
 
 ---
 
-## 13. Demo accounts (local / training only)
-
-If your environment was seeded with sample data, training accounts often look like this (password is usually **`password123`** — change in production):
-
-| Role | Email |
-|------|--------|
-| Admin | `admin@hrms.com` |
-| HR | `hr@hrms.com` |
-| Manager | `manager@hrms.com` |
-| Employee | `employee@hrms.com` |
-| Leadership | `leadership@hrms.com` |
-
-*Your real organization will use different emails.*
-
----
-
-## 14. Further technical documentation
+## 13. Further technical documentation
 
 - **API reference (Swagger):** `http://<your-api-host>:8000/docs` (when the backend is running).
 - **Developers:** see **[README](../README.md)** for environment variables, database, and deployment.
 
 ---
 
-## 15. Need help?
+## 14. Need help?
 
 - **Access or role issues** → HR or IT admin.  
 - **Wrong pay / policy** → HR; the tool only reflects what is configured.  

@@ -36,3 +36,4 @@ npm-debug.log*
 # Local databases & build artifacts
 *.db
 frontend/tsconfig.tsbuildinfo
+deployment/docker.env

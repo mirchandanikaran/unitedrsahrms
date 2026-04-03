@@ -32,6 +32,18 @@ async function request<T>(
 }
 
 export const api = {
+  setup: {
+    status: () => request<SetupStatus>("/setup/status"),
+    initialize: (data: {
+      admin_first_name: string;
+      admin_last_name: string;
+      admin_email: string;
+      admin_password: string;
+      department_name?: string;
+      department_code?: string;
+      designation_name?: string;
+    }) => request<{ message: string; admin_email: string }>("/setup/initialize", { method: "POST", body: JSON.stringify(data) }),
+  },
   auth: {
     login: (email: string, password: string) =>
       request<{ access_token: string; user: User }>("/auth/login", {
@@ -409,6 +421,11 @@ export interface AwardBadge {
   awarded_by_id?: number;
   awarded_by_name?: string;
   created_at: string;
+}
+export interface SetupStatus {
+  initialized: boolean;
+  user_count: number;
+  employee_count: number;
 }
 export interface SocialComment {
   id: number;

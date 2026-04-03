@@ -1,0 +1,9 @@
+# Root dependency entrypoint for HRMS.
+#
+# Backend Python dependencies:
+-r backend/requirements.txt
+#
+# Frontend dependencies are managed by npm (not pip):
+#   cd frontend && npm install
+# or:
+#   npm install --prefix frontend

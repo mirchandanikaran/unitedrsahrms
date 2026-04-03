@@ -1,0 +1,7 @@
+venv
+__pycache__
+*.pyc
+.pytest_cache
+tests
+hrms.db
+test_ems.db
